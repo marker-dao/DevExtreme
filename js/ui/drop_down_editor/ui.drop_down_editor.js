@@ -46,7 +46,7 @@ const DropDownEditor = TextBox.inherit({
                     return;
                 }
 
-                if(this._shouldBeClosed()) {
+                if(this.option('applyValueMode') === 'instantly') {
                     this.close();
                     return;
                 }
@@ -99,14 +99,6 @@ const DropDownEditor = TextBox.inherit({
                 return true;
             }
         });
-    },
-
-    _isInstantlyMode() {
-        return this.option('applyValueMode') === 'instantly';
-    },
-
-    _shouldBeClosed() {
-        return this._isInstantlyMode();
     },
 
     _getDefaultButtons: function() {
