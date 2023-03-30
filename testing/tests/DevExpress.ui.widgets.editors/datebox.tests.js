@@ -4781,10 +4781,13 @@ QUnit.module('keyboard navigation', {
     QUnit.testInActiveWindow('Hour input has focused state if tab key was pressed when dropDownOptions: { toolbarItems: [] }', function(assert) {
         const $dateBox = $('#dateBox').dxDateBox({
             type: 'datetime',
-            dropDownOptions: { toolbarItems: [] },
-            opened: true,
             focusStateEnabled: true,
         });
+
+        const instance = $dateBox.dxDateBox('instance');
+
+        instance.option('dropDownOptions.toolbarItems', []);
+        instance.open();
 
         const $input = $dateBox.find(`.${TEXTEDITOR_INPUT_CLASS}`);
         const keyboard = keyboardMock($input);
@@ -4803,10 +4806,13 @@ QUnit.module('keyboard navigation', {
     QUnit.testInActiveWindow('Format input has focused state if tab+shift key was pressed when dropDownOptions: { toolbarItems: [] }', function(assert) {
         const $dateBox = $('#dateBox').dxDateBox({
             type: 'datetime',
-            dropDownOptions: { toolbarItems: [] },
-            opened: true,
             focusStateEnabled: true,
         });
+
+        const instance = $dateBox.dxDateBox('instance');
+
+        instance.option('dropDownOptions.toolbarItems', []);
+        instance.open();
 
         const $input = $dateBox.find(`.${TEXTEDITOR_INPUT_CLASS}`);
         const keyboard = keyboardMock($input);
