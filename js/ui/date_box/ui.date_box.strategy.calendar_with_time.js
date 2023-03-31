@@ -15,7 +15,7 @@ const DATEBOX_ADAPTIVITY_MODE_CLASS = 'dx-datebox-adaptivity-mode';
 const DATEBOX_TIMEVIEW_SIDE_CLASS = 'dx-datebox-datetime-time-side';
 const TEXTEDITOR_INPUT_CLASS = 'dx-texteditor-input';
 
-const TIMEVIEW_ITEM_SELECTOR = '.dx-timeview-field .dx-item';
+const TIMEVIEW_FIELD_ITEMS_SELECTOR = '.dx-timeview-field .dx-item';
 
 const CalendarWithTimeStrategy = CalendarStrategy.inherit({
 
@@ -174,16 +174,19 @@ const CalendarWithTimeStrategy = CalendarStrategy.inherit({
 
     getFirstPopupElement: function() {
         if(!this._topToolbarHasItems()) {
-            return $(TIMEVIEW_ITEM_SELECTOR).eq(0).find(`.${TEXTEDITOR_INPUT_CLASS}`);
+            const $firstItem = this._timeView.$element().find(TIMEVIEW_FIELD_ITEMS_SELECTOR).eq(0);
+
+            return $firstItem.find(`.${TEXTEDITOR_INPUT_CLASS}`);
         }
     },
 
     getLastPopupElement() {
         if(!this._bottomToolbarHasItems()) {
-            const $timeViewItems = $(TIMEVIEW_ITEM_SELECTOR);
+            const $timeViewItems = this._timeView.$element().find(TIMEVIEW_FIELD_ITEMS_SELECTOR);
             const lastIndex = $timeViewItems.length - 1;
+            const $lastItem = $timeViewItems.eq(lastIndex);
 
-            return $timeViewItems.eq(lastIndex).find(`.${TEXTEDITOR_INPUT_CLASS}`);
+            return $lastItem.find(`.${TEXTEDITOR_INPUT_CLASS}`);
         }
     },
 
