@@ -1516,6 +1516,20 @@ QUnit.module('dateView integration', {
 
         assert.strictEqual($gestureCover.css('pointerEvents'), initialPointerEvents, 'correct default state');
     });
+
+    QUnit.test('Change dropDownOptions.toolbarItems in runtime does not throw errors', function(assert) {
+        try {
+            const $dateBox = $('#dateBox').dxDateBox({});
+    
+            const instance = $dateBox.dxDateBox('instance');
+    
+            instance.option('dropDownOptions.toolbarItems', []);
+        } catch (e) {
+            assert.ok(false, e);
+        } finally {
+            assert.ok(true, 'the exception is not thrown');
+        }
+    });
 });
 
 QUnit.module('widget sizing render', {}, () => {
