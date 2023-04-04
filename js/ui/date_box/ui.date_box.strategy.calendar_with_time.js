@@ -15,7 +15,7 @@ const DATEBOX_ADAPTIVITY_MODE_CLASS = 'dx-datebox-adaptivity-mode';
 const DATEBOX_TIMEVIEW_SIDE_CLASS = 'dx-datebox-datetime-time-side';
 const TEXTEDITOR_INPUT_CLASS = 'dx-texteditor-input';
 
-const TIMEVIEW_FIELD_ITEMS_SELECTOR = '.dx-timeview-field .dx-item';
+const TIMEVIEW_ITEM_SELECTOR = '.dx-timeview-field .dx-item';
 
 const CalendarWithTimeStrategy = CalendarStrategy.inherit({
 
@@ -160,7 +160,7 @@ const CalendarWithTimeStrategy = CalendarStrategy.inherit({
         return extend(calendarPopupConfig, { width: 'auto' });
     },
 
-    _topToolbarHasItems() {
+    _hasTopToolbarItems() {
         const { toolbarItems } = this.dateBox.option('dropDownOptions');
 
         return !!toolbarItems.find(item => item.toolbar === 'top');
@@ -173,8 +173,8 @@ const CalendarWithTimeStrategy = CalendarStrategy.inherit({
     },
 
     getFirstPopupElement: function() {
-        if(!this._topToolbarHasItems()) {
-            const $firstItem = this._timeView.$element().find(TIMEVIEW_FIELD_ITEMS_SELECTOR).eq(0);
+        if(!this._hasTopToolbarItems()) {
+            const $firstItem = this._timeView.$element().find(TIMEVIEW_ITEM_SELECTOR).eq(0);
 
             return $firstItem.find(`.${TEXTEDITOR_INPUT_CLASS}`);
         }
@@ -182,7 +182,7 @@ const CalendarWithTimeStrategy = CalendarStrategy.inherit({
 
     getLastPopupElement() {
         if(!this._bottomToolbarHasItems()) {
-            const $timeViewItems = this._timeView.$element().find(TIMEVIEW_FIELD_ITEMS_SELECTOR);
+            const $timeViewItems = this._timeView.$element().find(TIMEVIEW_ITEM_SELECTOR);
             const lastIndex = $timeViewItems.length - 1;
             const $lastItem = $timeViewItems.eq(lastIndex);
 
@@ -191,7 +191,7 @@ const CalendarWithTimeStrategy = CalendarStrategy.inherit({
     },
 
     _attachTabHandler() {
-        if(!this._topToolbarHasItems()) {
+        if(!this._hasTopToolbarItems()) {
             this._attachHoursBoxHandler();
         }
 
