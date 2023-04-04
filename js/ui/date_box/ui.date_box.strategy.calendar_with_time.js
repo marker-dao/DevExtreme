@@ -166,7 +166,7 @@ const CalendarWithTimeStrategy = CalendarStrategy.inherit({
         return !!toolbarItems.find(item => item.toolbar === 'top');
     },
 
-    _bottomToolbarHasItems() {
+    _hasBottomToolbarItems() {
         const { toolbarItems } = this.dateBox.option('dropDownOptions');
 
         return !!toolbarItems.find(item => item.toolbar === 'bottom');
@@ -181,7 +181,7 @@ const CalendarWithTimeStrategy = CalendarStrategy.inherit({
     },
 
     getLastPopupElement() {
-        if(!this._bottomToolbarHasItems()) {
+        if(!this._hasBottomToolbarItems()) {
             const $timeViewItems = this._timeView.$element().find(TIMEVIEW_ITEM_SELECTOR);
             const lastIndex = $timeViewItems.length - 1;
             const $lastItem = $timeViewItems.eq(lastIndex);
@@ -191,11 +191,15 @@ const CalendarWithTimeStrategy = CalendarStrategy.inherit({
     },
 
     _attachTabHandler() {
+        if(!this._timeView) {
+            return;
+        }
+
         if(!this._hasTopToolbarItems()) {
             this._attachHoursBoxHandler();
         }
 
-        if(!this._bottomToolbarHasItems()) {
+        if(!this._hasBottomToolbarItems()) {
             this._attachLastInputBoxHandler();
         }
     },
