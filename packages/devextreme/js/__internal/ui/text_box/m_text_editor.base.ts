@@ -34,8 +34,7 @@ import type { TextEditorButtonInfo } from './texteditor_button_collection/index'
 import TextEditorButtonCollection from './texteditor_button_collection/index';
 
 export interface TextEditorBaseProperties extends dxTextEditorOptions<TextEditorBase> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  displayValueFormatter?: ((value: string | any[]) => string);
+  displayValueFormatter?: ((value: unknown) => string);
 
   labelMode?: LabelMode;
 
@@ -90,7 +89,7 @@ const CONTROL_KEYS = [
   'downArrow',
 ];
 
-let TextEditorLabelCreator = TextEditorLabel;
+let TextEditorLabelCreator: typeof TextEditorLabel = TextEditorLabel;
 
 const checkButtonsOptionType = (buttons: TextEditorBaseProperties['buttons']): void => {
   if (isDefined(buttons) && !Array.isArray(buttons)) {
@@ -171,10 +170,8 @@ class TextEditorBase<
       label: '',
       labelMode: 'static',
       labelMark: '',
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      displayValueFormatter(value: string | any[]): string {
-        // @ts-expect-error Comparison of boolean and any[], any is not string
-        return isDefined(value) && value !== false ? value : '';
+      displayValueFormatter(value: unknown): string {
+        return isDefined(value) && value !== false ? String(value) : '';
       },
     };
   }
@@ -223,6 +220,27 @@ class TextEditorBase<
 
   _input(): dxElementWrapper {
     return this.$element().find(TEXTEDITOR_INPUT_SELECTOR).first();
+  }
+  _inputElement(): HTMLInputElement | null {
+    return this._input().get(0) as HTMLInputElement | null;
+  }
+
+  _inputEventTarget(): Element[] {
+    const inputElement = this._inputElement();
+
+    return inputElement ? [inputElement] : [];
+  }
+
+  _placeholderEventTarget(): Element[] {
+    return this._placeholder().toArray() as Element[];
+  }
+
+  _triggerInputEvent(eventName: string): void {
+    const inputEventTarget = this._inputEventTarget();
+
+    if (inputEventTarget.length > 0) {
+      eventsEngine.trigger(inputEventTarget, eventName);
+    }
   }
 
   _isFocused(): boolean {
@@ -421,11 +439,8 @@ class TextEditorBase<
   }
 
   _getPlaceholderAttr(): string | null {
-    const {
-      ios,
-      // @ts-expect-error Property 'mac' does not exist on type 'Device'
-      mac,
-    } = devices.real();
+    const device = devices.real() as ReturnType<typeof devices.real> & { mac?: boolean };
+    const { ios, mac } = device;
     const { placeholder } = this.option();
 
     // WA to fix vAlign (T898735)
@@ -466,12 +481,7 @@ class TextEditorBase<
   }
 
   _renderValue(): DeferredObj<unknown> {
-    const renderInputDeferred = this._renderInputValue();
-
-    // @ts-expect-error DeferredObj typification
-    const renderInputPromise = renderInputDeferred.promise() as DeferredObj<unknown>;
-
-    return renderInputPromise;
+    return this._renderInputValue();
   }
 
   _renderInputValue(value?: TProperties['value']): DeferredObj<unknown> {
@@ -494,8 +504,7 @@ class TextEditorBase<
 
     this.option({ text: textValue });
 
-    // @ts-expect-error @ts-error
-    const inputElementValue = this._input().val() as string | undefined;
+    const inputElementValue = this._inputElement()?.value;
 
     // fallback to empty string is required to support WebKit native date picker in some basic
     // scenarios can not be covered by QUnit
@@ -514,13 +523,10 @@ class TextEditorBase<
   }
 
   _isValueValid(): boolean {
-    if (this._input().length) {
-      // @ts-expect-error Property 'validity' does not exist on type 'Element'
-      const { validity } = this._input().get(0);
+    const inputElement = this._inputElement();
 
-      if (validity) {
-        return Boolean(validity.valid);
-      }
+    if (inputElement?.validity) {
+      return Boolean(inputElement.validity.valid);
     }
 
     return true;
@@ -681,24 +687,19 @@ class TextEditorBase<
     // There should be no destructuring, because of knockout limitations
     const placeholder = this.option('placeholder');
 
-    const placeholderAttributes = {
-      id: placeholder ? `dx-${new Guid()}` : undefined,
-      'data-dx_placeholder': placeholder,
-    };
-
-    // @ts-expect-error attr typification
-    this._$placeholder = $('<div>').attr(placeholderAttributes);
+    this._$placeholder = $('<div>');
+    this._$placeholder.attr('data-dx_placeholder', placeholder ?? '');
+    if (placeholder) {
+      this._$placeholder.attr('id', `dx-${new Guid()}`);
+    }
     this._$placeholder.insertAfter($input);
     this._$placeholder.addClass(TEXTEDITOR_PLACEHOLDER_CLASS);
   }
 
   _attachPlaceholderEvents(): void {
-    // @ts-expect-error second argument
     const startEvent = addNamespace(pointerEvents.up, this.NAME);
-
-    eventsEngine.on(this._$placeholder, startEvent, () => {
-      // @ts-expect-error eventsEngine typification
-      eventsEngine.trigger(this._input(), 'focus');
+    eventsEngine.on(this._placeholderEventTarget(), startEvent, () => {
+      this._triggerInputEvent('focus');
     });
     this._toggleEmptinessEventHandler();
   }
@@ -708,7 +709,6 @@ class TextEditorBase<
   }
 
   _clearValueHandler(e: ValueChangedEvent & DxEvent): void {
-    const $input = this._input();
 
     e.stopPropagation();
 
@@ -716,12 +716,10 @@ class TextEditorBase<
     this._clearValue();
 
     if (!this._isFocused()) {
-      // @ts-expect-error eventsEngine typification
-      eventsEngine.trigger($input, 'focus');
+      this._triggerInputEvent('focus');
     }
 
-    // @ts-expect-error eventsEngine typification
-    eventsEngine.trigger($input, 'input');
+    this._triggerInputEvent('input');
   }
 
   _clearValue(): void {
@@ -740,8 +738,7 @@ class TextEditorBase<
           excludeValidators: ['readOnly'],
         });
 
-        // @ts-expect-error eventsEngine typification
-        eventsEngine.on($input, addNamespace(event.toLowerCase(), this.NAME), (e) => {
+        eventsEngine.on($input.toArray() as Element[], addNamespace(event.toLowerCase(), this.NAME), (e) => {
           if (this._disposed) {
             return;
           }
@@ -756,8 +753,7 @@ class TextEditorBase<
     const $input = this._input();
 
     EVENTS_LIST.forEach((event: string) => {
-      // @ts-expect-error second argument && eventsEngine typification
-      eventsEngine.off($input, addNamespace(event.toLowerCase(), this.NAME));
+      eventsEngine.off($input.toArray() as Element[], addNamespace(event.toLowerCase(), this.NAME));
     });
 
     this._renderEvents();
@@ -765,7 +761,7 @@ class TextEditorBase<
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _keyPressHandler(e?: { originalEvent: InputEvent & KeyboardEvent }): void {
-    this.option('text', this._input().val());
+    this.option('text', this._inputElement()?.value);
   }
 
   _keyDownHandler(e: KeyboardEvent): void {
@@ -777,8 +773,7 @@ class TextEditorBase<
     const isNewValue = $input.val() !== value;
 
     if (isCtrlEnter && isNewValue) {
-      // @ts-expect-error eventsEngine typification
-      eventsEngine.trigger($input, 'change');
+      eventsEngine.trigger($input.toArray() as Element[], 'change');
     }
   }
 
@@ -797,17 +792,17 @@ class TextEditorBase<
 
     const $input = this._input();
 
-    eventsEngine.on($input, keyPressEvent, this._keyPressHandler.bind(this));
-    eventsEngine.on($input, valueChangeEvent, this._valueChangeEventHandler.bind(this));
-    eventsEngine.on($input, keyDownEvent, this._keyDownHandler.bind(this));
+    eventsEngine.on($input.toArray() as Element[], keyPressEvent, this._keyPressHandler.bind(this));
+    eventsEngine.on($input.toArray() as Element[], valueChangeEvent, this._valueChangeEventHandler.bind(this));
+    eventsEngine.on($input.toArray() as Element[], keyDownEvent, this._keyDownHandler.bind(this));
   }
 
   _cleanValueChangeEvent(): void {
     const valueChangeNamespace = `.${this.NAME}ValueChange`;
     const textChangeNamespace = `.${this.NAME}TextChange`;
 
-    eventsEngine.off(this._input(), valueChangeNamespace);
-    eventsEngine.off(this._input(), textChangeNamespace);
+    eventsEngine.off(this._inputEventTarget(), valueChangeNamespace);
+    eventsEngine.off(this._inputEventTarget(), textChangeNamespace);
   }
 
   _refreshValueChangeEvent(): void {
@@ -829,7 +824,7 @@ class TextEditorBase<
   }
 
   _isInput(element: Element): boolean {
-    return element === this._input().get(0);
+    return element === this._inputElement();
   }
 
   _preventNestedFocusEvent(event: DxEvent): boolean {
@@ -888,14 +883,11 @@ class TextEditorBase<
   }
 
   _renderEmptinessEvent(): void {
-    const $input = this._input();
-
-    eventsEngine.on($input, 'input blur', this._toggleEmptinessEventHandler.bind(this));
+    eventsEngine.on(this._inputEventTarget(), 'input blur', this._toggleEmptinessEventHandler.bind(this));
   }
 
   _toggleEmptinessEventHandler(): void {
-    // @ts-expect-error dxElementWrapper.val() typification
-    const text = this._input().val() as string;
+    const text = this._inputElement()?.value ?? null;
 
     const isEmpty = (text === '' || text === null) && this._isValueValid();
 
@@ -916,8 +908,8 @@ class TextEditorBase<
       excludeValidators: ['readOnly'],
     });
 
-    eventsEngine.off(this._input(), 'keyup.onEnterKey.dxTextEditor');
-    eventsEngine.on(this._input(), 'keyup.onEnterKey.dxTextEditor', this._enterKeyHandlerUp.bind(this));
+    eventsEngine.off(this._inputEventTarget(), 'keyup.onEnterKey.dxTextEditor');
+    eventsEngine.on(this._inputEventTarget(), 'keyup.onEnterKey.dxTextEditor', this._enterKeyHandlerUp.bind(this));
   }
 
   _enterKeyHandlerUp(e: DxEvent<KeyboardEvent>): void {
@@ -946,11 +938,13 @@ class TextEditorBase<
   }
 
   _hasActiveElement(): boolean {
-    const input = this._input()[0];
-    const activeElement = domAdapter.getActiveElement(input);
+    const input = this._inputElement();
 
-    // @ts-expect-error dxElementWrapper
-    return this._input().is(activeElement);
+    if (!input) {
+      return false;
+    }
+    const activeElement = domAdapter.getActiveElement(input);
+    return input === activeElement;
   }
 
   _optionChanged(args: OptionChanged<TProperties>): void {
@@ -987,17 +981,14 @@ class TextEditorBase<
       case 'placeholder':
         this._renderPlaceholder();
         this._setFieldAria(true);
-        // @ts-expect-error ts-error
-        this._input().attr({ placeholder: this._getPlaceholderAttr() });
+        this._input().attr('placeholder', this._getPlaceholderAttr());
         break;
       case 'label':
-        // @ts-expect-error ts-error
-        this._label.updateText(value ?? '');
+        this._label?.updateText(String(value ?? ''));
         this._setFieldAria(true);
         break;
       case 'labelMark':
-        // @ts-expect-error ts-error
-        this._label.updateMark(value ?? '');
+        this._label?.updateMark(String(value ?? ''));
         break;
       case 'labelMode':
         this._label.updateMode(value as LabelMode);
@@ -1086,13 +1077,11 @@ class TextEditorBase<
   }
 
   getButton(name: string): dxButton | undefined | null {
-    // @ts-expect-error TextEditorButtonCollection should use generic
-    return this._buttonCollection.getButton(name);
+    return this._buttonCollection.getButton(name) as dxButton | undefined | null;
   }
 
   focus(): void {
-    // @ts-expect-error ts-error
-    eventsEngine.trigger(this._input(), 'focus');
+    this._triggerInputEvent('focus');
   }
 
   clear(): void {
@@ -1171,13 +1160,17 @@ class TextEditorBase<
 }
 
 /// #DEBUG
-// @ts-expect-error ts-error
-TextEditorBase.mockTextEditorLabel = (mock): void => {
+type TextEditorBaseDebugStatics = typeof TextEditorBase & {
+  mockTextEditorLabel: (mock: typeof TextEditorLabel) => void;
+  restoreTextEditorLabel: () => void;
+};
+
+const TextEditorBaseWithDebug = TextEditorBase as TextEditorBaseDebugStatics;
+
+TextEditorBaseWithDebug.mockTextEditorLabel = (mock: typeof TextEditorLabel): void => {
   TextEditorLabelCreator = mock;
 };
-// @ts-expect-error ts-error
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-TextEditorBase.restoreTextEditorLabel = (mock): void => {
+TextEditorBaseWithDebug.restoreTextEditorLabel = (): void => {
   TextEditorLabelCreator = TextEditorLabel;
 };
 /// #ENDDEBUG
