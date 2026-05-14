@@ -125,7 +125,8 @@
       "stylelint-config-recommended-vue@1.6.1>stylelint-config-recommended": "^16.0.0",
       "uuid@<14.0.0": "~14.0.0",
       "postcss@<8.5.10": "8.5.10",
-      "ip-address@<=10.1.0": ">=10.1.1"
+      "ip-address@<=10.1.0": ">=10.1.1",
+      "devextreme-internal-tools": "file:/Users/admin/DX_Projects/devextreme-internal-tools/dist"
     }
   },
   "packageManager": "pnpm@9.15.9"
