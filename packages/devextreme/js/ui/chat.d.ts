@@ -255,7 +255,7 @@ export type Attachment = {
  * @namespace DevExpress.ui.dxChat
  * @public
  */
-export type TextBoxPropertiesWithOutMaxLength = Omit<TextBoxProperties, 'maxLength'>;
+export type TextBoxPropertiesWithoutMaxLength = Omit<TextBoxProperties, 'maxLength'>;
 
 /**
  * @docid
@@ -404,7 +404,7 @@ export interface dxChatOptions extends WidgetOptions<dxChat> {
      * @docid
      * @public
      */
-    a1?: TextBoxPropertiesWithOutMaxLength;
+    a1?: TextBoxPropertiesWithoutMaxLength;
     /**
      * @docid
      * @default true
