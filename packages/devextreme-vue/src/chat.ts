@@ -3,9 +3,11 @@ import { defineComponent } from "vue";
 import { prepareComponentConfig } from "./core/index";
 import Chat, { Properties } from "devextreme/ui/chat";
 import  DataSource from "devextreme/data/data_source";
+import  DOMComponent from "devextreme/core/dom_component";
 import  dxChat from "devextreme/ui/chat";
 import  UploadInfo from "devextreme/file_management/upload_info";
 import {
+ TextBoxPropertiesWithoutMaxLength,
  Alert,
  Message,
  AttachmentDownloadClickEvent,
@@ -39,7 +41,15 @@ import {
 } from "devextreme/common/core/localization";
 import {
  Format as CommonFormat,
+ TextBoxPredefinedButton,
+ TextEditorButton,
+ LabelMode,
+ MaskMode,
+ EditorStyle,
+ ValidationMessageMode,
+ Position,
  ValidationStatus,
+ TextEditorButtonLocation,
  ButtonType,
  ButtonStyle,
  SingleMultipleOrNone,
@@ -87,9 +97,28 @@ import {
  OptionChangedEvent as ButtonGroupOptionChangedEvent,
  SelectionChangedEvent,
 } from "devextreme/ui/button_group";
+import {
+ TextBoxType,
+} from "devextreme/ui/text_box";
+import {
+ NativeEventInfo,
+ EventInfo,
+} from "devextreme/common/core/events";
+import {
+ event,
+} from "devextreme/events/events.types";
+import {
+ dxButtonOptions,
+ ClickEvent,
+ ContentReadyEvent as ButtonContentReadyEvent,
+ DisposingEvent as ButtonDisposingEvent,
+ InitializedEvent as ButtonInitializedEvent,
+ OptionChangedEvent as ButtonOptionChangedEvent,
+} from "devextreme/ui/button";
 import { prepareConfigurationComponentConfig } from "./core/index";
 
 type AccessibleOptions = Pick<Properties,
+  "a1" |
   "accessKey" |
   "activeStateEnabled" |
   "alerts" |
@@ -144,6 +173,7 @@ interface DxChat extends AccessibleOptions {
 
 const componentConfig = {
   props: {
+    a1: Object as PropType<TextBoxPropertiesWithoutMaxLength>,
     accessKey: String,
     activeStateEnabled: Boolean,
     alerts: Array as PropType<Array<Alert>>,
@@ -194,6 +224,7 @@ const componentConfig = {
   emits: {
     "update:isActive": null,
     "update:hoveredElement": null,
+    "update:a1": null,
     "update:accessKey": null,
     "update:activeStateEnabled": null,
     "update:alerts": null,
@@ -250,6 +281,7 @@ const componentConfig = {
     (this as any).$_WidgetClass = Chat;
     (this as any).$_hasAsyncTemplate = true;
     (this as any).$_expectedChildren = {
+      a1: { isCollectionItem: false, optionName: "a1" },
       alert: { isCollectionItem: true, optionName: "alerts" },
       chatItem: { isCollectionItem: true, optionName: "items" },
       dayHeaderFormat: { isCollectionItem: false, optionName: "dayHeaderFormat" },
@@ -270,6 +302,132 @@ prepareComponentConfig(componentConfig);
 
 const DxChat = defineComponent(componentConfig);
 
+
+const DxA1Config = {
+  emits: {
+    "update:isActive": null,
+    "update:hoveredElement": null,
+    "update:accessKey": null,
+    "update:activeStateEnabled": null,
+    "update:buttons": null,
+    "update:disabled": null,
+    "update:elementAttr": null,
+    "update:focusStateEnabled": null,
+    "update:height": null,
+    "update:hint": null,
+    "update:hoverStateEnabled": null,
+    "update:inputAttr": null,
+    "update:isDirty": null,
+    "update:isValid": null,
+    "update:label": null,
+    "update:labelMode": null,
+    "update:mask": null,
+    "update:maskChar": null,
+    "update:maskInvalidMessage": null,
+    "update:maskRules": null,
+    "update:mode": null,
+    "update:name": null,
+    "update:onChange": null,
+    "update:onContentReady": null,
+    "update:onCopy": null,
+    "update:onCut": null,
+    "update:onDisposing": null,
+    "update:onEnterKey": null,
+    "update:onFocusIn": null,
+    "update:onFocusOut": null,
+    "update:onInitialized": null,
+    "update:onInput": null,
+    "update:onKeyDown": null,
+    "update:onKeyUp": null,
+    "update:onOptionChanged": null,
+    "update:onPaste": null,
+    "update:onValueChanged": null,
+    "update:placeholder": null,
+    "update:readOnly": null,
+    "update:rtlEnabled": null,
+    "update:showClearButton": null,
+    "update:showMaskMode": null,
+    "update:spellcheck": null,
+    "update:stylingMode": null,
+    "update:tabIndex": null,
+    "update:text": null,
+    "update:useMaskedValue": null,
+    "update:validationError": null,
+    "update:validationErrors": null,
+    "update:validationMessageMode": null,
+    "update:validationMessagePosition": null,
+    "update:validationStatus": null,
+    "update:value": null,
+    "update:valueChangeEvent": null,
+    "update:visible": null,
+    "update:width": null,
+  },
+  props: {
+    accessKey: String,
+    activeStateEnabled: Boolean,
+    buttons: Array as PropType<Array<string | TextBoxPredefinedButton | TextEditorButton>>,
+    disabled: Boolean,
+    elementAttr: Object as PropType<Record<string, any>>,
+    focusStateEnabled: Boolean,
+    height: [Number, String],
+    hint: String,
+    hoverStateEnabled: Boolean,
+    inputAttr: {},
+    isDirty: Boolean,
+    isValid: Boolean,
+    label: String,
+    labelMode: String as PropType<LabelMode>,
+    mask: String,
+    maskChar: String,
+    maskInvalidMessage: String,
+    maskRules: {},
+    mode: String as PropType<TextBoxType>,
+    name: String,
+    onChange: Function as PropType<((e: NativeEventInfo<any>) => void)>,
+    onContentReady: Function as PropType<((e: EventInfo<any>) => void)>,
+    onCopy: Function as PropType<((e: NativeEventInfo<any>) => void)>,
+    onCut: Function as PropType<((e: NativeEventInfo<any>) => void)>,
+    onDisposing: Function as PropType<((e: EventInfo<any>) => void)>,
+    onEnterKey: Function as PropType<((e: NativeEventInfo<any>) => void)>,
+    onFocusIn: Function as PropType<((e: NativeEventInfo<any>) => void)>,
+    onFocusOut: Function as PropType<((e: NativeEventInfo<any>) => void)>,
+    onInitialized: Function as PropType<((e: { component: TextBoxPropertiesWithoutMaxLength, element: any }) => void)>,
+    onInput: Function as PropType<((e: NativeEventInfo<any>) => void)>,
+    onKeyDown: Function as PropType<((e: NativeEventInfo<any>) => void)>,
+    onKeyUp: Function as PropType<((e: NativeEventInfo<any>) => void)>,
+    onOptionChanged: Function as PropType<((e: { component: DOMComponent, element: any, fullName: string, model: any, name: string, previousValue: any, value: any }) => void)>,
+    onPaste: Function as PropType<((e: NativeEventInfo<any>) => void)>,
+    onValueChanged: Function as PropType<((e: { component: TextBoxPropertiesWithoutMaxLength, element: any, event: event, model: any, previousValue: Record<string, any>, value: Record<string, any> }) => void)>,
+    placeholder: String,
+    readOnly: Boolean,
+    rtlEnabled: Boolean,
+    showClearButton: Boolean,
+    showMaskMode: String as PropType<MaskMode>,
+    spellcheck: Boolean,
+    stylingMode: String as PropType<EditorStyle>,
+    tabIndex: Number,
+    text: String,
+    useMaskedValue: Boolean,
+    validationError: {},
+    validationErrors: Array as PropType<Array<any>>,
+    validationMessageMode: String as PropType<ValidationMessageMode>,
+    validationMessagePosition: String as PropType<Position>,
+    validationStatus: String as PropType<ValidationStatus>,
+    value: String,
+    valueChangeEvent: String,
+    visible: Boolean,
+    width: [Number, String]
+  }
+};
+
+prepareConfigurationComponentConfig(DxA1Config);
+
+const DxA1 = defineComponent(DxA1Config);
+
+(DxA1 as any).$_optionName = "a1";
+(DxA1 as any).$_expectedChildren = {
+  button: { isCollectionItem: true, optionName: "buttons" }
+};
 
 const DxAlertConfig = {
   emits: {
@@ -333,6 +491,31 @@ prepareConfigurationComponentConfig(DxAuthorConfig);
 const DxAuthor = defineComponent(DxAuthorConfig);
 
 (DxAuthor as any).$_optionName = "author";
+
+const DxButtonConfig = {
+  emits: {
+    "update:isActive": null,
+    "update:hoveredElement": null,
+    "update:location": null,
+    "update:name": null,
+    "update:options": null,
+  },
+  props: {
+    location: String as PropType<TextEditorButtonLocation>,
+    name: String,
+    options: Object as PropType<dxButtonOptions | Record<string, any>>
+  }
+};
+
+prepareConfigurationComponentConfig(DxButtonConfig);
+
+const DxButton = defineComponent(DxButtonConfig);
+
+(DxButton as any).$_optionName = "buttons";
+(DxButton as any).$_isCollectionItem = true;
+(DxButton as any).$_expectedChildren = {
+  options: { isCollectionItem: false, optionName: "options" }
+};
 
 const DxChatItemConfig = {
   emits: {
@@ -661,6 +844,69 @@ const DxMessageTimestampFormat = defineComponent(DxMessageTimestampFormatConfig)
 
 (DxMessageTimestampFormat as any).$_optionName = "messageTimestampFormat";
 
+const DxOptionsConfig = {
+  emits: {
+    "update:isActive": null,
+    "update:hoveredElement": null,
+    "update:accessKey": null,
+    "update:activeStateEnabled": null,
+    "update:disabled": null,
+    "update:elementAttr": null,
+    "update:focusStateEnabled": null,
+    "update:height": null,
+    "update:hint": null,
+    "update:hoverStateEnabled": null,
+    "update:icon": null,
+    "update:onClick": null,
+    "update:onContentReady": null,
+    "update:onDisposing": null,
+    "update:onInitialized": null,
+    "update:onOptionChanged": null,
+    "update:rtlEnabled": null,
+    "update:stylingMode": null,
+    "update:tabIndex": null,
+    "update:template": null,
+    "update:text": null,
+    "update:type": null,
+    "update:useSubmitBehavior": null,
+    "update:validationGroup": null,
+    "update:visible": null,
+    "update:width": null,
+  },
+  props: {
+    accessKey: String,
+    activeStateEnabled: Boolean,
+    disabled: Boolean,
+    elementAttr: Object as PropType<Record<string, any>>,
+    focusStateEnabled: Boolean,
+    height: [Number, String],
+    hint: String,
+    hoverStateEnabled: Boolean,
+    icon: String,
+    onClick: Function as PropType<((e: ClickEvent) => void)>,
+    onContentReady: Function as PropType<((e: ButtonContentReadyEvent) => void)>,
+    onDisposing: Function as PropType<((e: ButtonDisposingEvent) => void)>,
+    onInitialized: Function as PropType<((e: ButtonInitializedEvent) => void)>,
+    onOptionChanged: Function as PropType<((e: ButtonOptionChangedEvent) => void)>,
+    rtlEnabled: Boolean,
+    stylingMode: String as PropType<ButtonStyle>,
+    tabIndex: Number,
+    template: {},
+    text: String,
+    type: String as PropType<ButtonType | string>,
+    useSubmitBehavior: Boolean,
+    validationGroup: String,
+    visible: Boolean,
+    width: [Number, String]
+  }
+};
+
+prepareConfigurationComponentConfig(DxOptionsConfig);
+
+const DxOptions = defineComponent(DxOptionsConfig);
+
+(DxOptions as any).$_optionName = "options";
+
 const DxSendButtonOptionsConfig = {
   emits: {
     "update:isActive": null,
@@ -935,9 +1181,11 @@ const DxUser = defineComponent(DxUserConfig);
 export default DxChat;
 export {
   DxChat,
+  DxA1,
   DxAlert,
   DxAttachment,
   DxAuthor,
+  DxButton,
   DxChatItem,
   DxCustomSpeechRecognizer,
   DxDayHeaderFormat,
@@ -945,6 +1193,7 @@ export {
   DxFileUploaderOptions,
   DxItem,
   DxMessageTimestampFormat,
+  DxOptions,
   DxSendButtonOptions,
   DxSpeechRecognitionConfig,
   DxSpeechToTextOptions,

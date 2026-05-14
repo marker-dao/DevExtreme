@@ -11496,6 +11496,10 @@ declare module DevExpress.ui {
    */
   export interface dxChatOptions extends WidgetOptions<dxChat> {
     /**
+     * [descr:dxChatOptions.a1]
+     */
+    a1?: DevExpress.ui.dxChat.TextBoxPropertiesWithoutMaxLength;
+    /**
      * [descr:dxChatOptions.activeStateEnabled]
      */
     activeStateEnabled?: boolean;
@@ -34345,6 +34349,13 @@ declare module DevExpress.ui.dxChat {
      */
     onClick?: (e: SendButtonClickEvent) => void;
   };
+  /**
+   * [descr:TextBoxPropertiesWithoutMaxLength]
+   */
+  export type TextBoxPropertiesWithoutMaxLength = Omit<
+    DevExpress.ui.dxTextBox.Properties,
+    'maxLength'
+  >;
   /**
    * [descr:TextMessage]
    */

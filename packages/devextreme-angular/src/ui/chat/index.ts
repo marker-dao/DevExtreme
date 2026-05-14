@@ -22,7 +22,7 @@ import {
 } from '@angular/core';
 
 
-import type { default as dxChat, Alert, Message, AttachmentDownloadClickEvent, DisposingEvent, InitializedEvent, InputFieldTextChangedEvent, MessageDeletedEvent, MessageDeletingEvent, MessageEditCanceledEvent, MessageEditingStartEvent, MessageEnteredEvent, MessageUpdatedEvent, MessageUpdatingEvent, OptionChangedEvent, TypingEndEvent, TypingStartEvent, SendButtonProperties, User } from 'devextreme/ui/chat';
+import type { default as dxChat, TextBoxPropertiesWithoutMaxLength, Alert, Message, AttachmentDownloadClickEvent, DisposingEvent, InitializedEvent, InputFieldTextChangedEvent, MessageDeletedEvent, MessageDeletingEvent, MessageEditCanceledEvent, MessageEditingStartEvent, MessageEnteredEvent, MessageUpdatedEvent, MessageUpdatingEvent, OptionChangedEvent, TypingEndEvent, TypingStartEvent, SendButtonProperties, User } from 'devextreme/ui/chat';
 import type { default as DataSource, DataSourceOptions } from 'devextreme/data/data_source';
 import type { Store } from 'devextreme/data/store';
 import type { Format } from 'devextreme/common/core/localization';
@@ -53,9 +53,11 @@ import { DxoMessageTimestampFormatModule } from 'devextreme-angular/ui/nested';
 import { DxiTypingUserModule } from 'devextreme-angular/ui/nested';
 import { DxoUserModule } from 'devextreme-angular/ui/nested';
 
+import { DxoChatA1Module } from 'devextreme-angular/ui/chat/nested';
 import { DxiChatAlertModule } from 'devextreme-angular/ui/chat/nested';
 import { DxiChatAttachmentModule } from 'devextreme-angular/ui/chat/nested';
 import { DxoChatAuthorModule } from 'devextreme-angular/ui/chat/nested';
+import { DxiChatButtonModule } from 'devextreme-angular/ui/chat/nested';
 import { DxiChatChatItemModule } from 'devextreme-angular/ui/chat/nested';
 import { DxoChatCustomSpeechRecognizerModule } from 'devextreme-angular/ui/chat/nested';
 import { DxoChatDayHeaderFormatModule } from 'devextreme-angular/ui/chat/nested';
@@ -63,6 +65,7 @@ import { DxoChatEditingModule } from 'devextreme-angular/ui/chat/nested';
 import { DxoChatFileUploaderOptionsModule } from 'devextreme-angular/ui/chat/nested';
 import { DxiChatItemModule } from 'devextreme-angular/ui/chat/nested';
 import { DxoChatMessageTimestampFormatModule } from 'devextreme-angular/ui/chat/nested';
+import { DxoChatOptionsModule } from 'devextreme-angular/ui/chat/nested';
 import { DxoChatSendButtonOptionsModule } from 'devextreme-angular/ui/chat/nested';
 import { DxoChatSpeechRecognitionConfigModule } from 'devextreme-angular/ui/chat/nested';
 import { DxoChatSpeechToTextOptionsModule } from 'devextreme-angular/ui/chat/nested';
@@ -73,6 +76,7 @@ import { DxoChatUserModule } from 'devextreme-angular/ui/chat/nested';
 import { 
            PROPERTY_TOKEN_alerts,
            PROPERTY_TOKEN_attachments,
+           PROPERTY_TOKEN_buttons,
            PROPERTY_TOKEN_items,
            PROPERTY_TOKEN_typingUsers,
      } from 'devextreme-angular/core/tokens';
@@ -106,6 +110,11 @@ export class DxChatComponent extends DxComponent implements OnDestroy, OnChanges
         this.setChildren('attachments', value);
     }
 
+    @ContentChildren(PROPERTY_TOKEN_buttons)
+    set _buttonsContentChildren(value: QueryList<CollectionNestedOption>) {
+        this.setChildren('buttons', value);
+    }
+
     @ContentChildren(PROPERTY_TOKEN_items)
     set _itemsContentChildren(value: QueryList<CollectionNestedOption>) {
         this.setChildren('items', value);
@@ -117,6 +126,16 @@ export class DxChatComponent extends DxComponent implements OnDestroy, OnChanges
     }
 
     instance: DxChat = null;
+
+    
+    @Input()
+    get a1(): TextBoxPropertiesWithoutMaxLength {
+        return this._getOption('a1');
+    }
+    set a1(value: TextBoxPropertiesWithoutMaxLength) {
+        this._setOption('a1', value);
+    }
+
 
     /**
      * [descr:WidgetOptions.accessKey]
@@ -635,6 +654,13 @@ export class DxChatComponent extends DxComponent implements OnDestroy, OnChanges
      * This member supports the internal infrastructure and is not intended to be used directly from your code.
     
      */
+    @Output() a1Change: EventEmitter<TextBoxPropertiesWithoutMaxLength>;
+
+    /**
+    
+     * This member supports the internal infrastructure and is not intended to be used directly from your code.
+    
+     */
     @Output() accessKeyChange: EventEmitter<string | undefined>;
 
     /**
@@ -881,6 +907,7 @@ export class DxChatComponent extends DxComponent implements OnDestroy, OnChanges
             { subscribe: 'optionChanged', emit: 'onOptionChanged' },
             { subscribe: 'typingEnd', emit: 'onTypingEnd' },
             { subscribe: 'typingStart', emit: 'onTypingStart' },
+            { emit: 'a1Change' },
             { emit: 'accessKeyChange' },
             { emit: 'activeStateEnabledChange' },
             { emit: 'alertsChange' },
@@ -974,9 +1001,11 @@ export class DxChatComponent extends DxComponent implements OnDestroy, OnChanges
     DxoMessageTimestampFormatModule,
     DxiTypingUserModule,
     DxoUserModule,
+    DxoChatA1Module,
     DxiChatAlertModule,
     DxiChatAttachmentModule,
     DxoChatAuthorModule,
+    DxiChatButtonModule,
     DxiChatChatItemModule,
     DxoChatCustomSpeechRecognizerModule,
     DxoChatDayHeaderFormatModule,
@@ -984,6 +1013,7 @@ export class DxChatComponent extends DxComponent implements OnDestroy, OnChanges
     DxoChatFileUploaderOptionsModule,
     DxiChatItemModule,
     DxoChatMessageTimestampFormatModule,
+    DxoChatOptionsModule,
     DxoChatSendButtonOptionsModule,
     DxoChatSpeechRecognitionConfigModule,
     DxoChatSpeechToTextOptionsModule,
@@ -1004,9 +1034,11 @@ export class DxChatComponent extends DxComponent implements OnDestroy, OnChanges
     DxoMessageTimestampFormatModule,
     DxiTypingUserModule,
     DxoUserModule,
+    DxoChatA1Module,
     DxiChatAlertModule,
     DxiChatAttachmentModule,
     DxoChatAuthorModule,
+    DxiChatButtonModule,
     DxiChatChatItemModule,
     DxoChatCustomSpeechRecognizerModule,
     DxoChatDayHeaderFormatModule,
@@ -1014,6 +1046,7 @@ export class DxChatComponent extends DxComponent implements OnDestroy, OnChanges
     DxoChatFileUploaderOptionsModule,
     DxiChatItemModule,
     DxoChatMessageTimestampFormatModule,
+    DxoChatOptionsModule,
     DxoChatSendButtonOptionsModule,
     DxoChatSpeechRecognitionConfigModule,
     DxoChatSpeechToTextOptionsModule,

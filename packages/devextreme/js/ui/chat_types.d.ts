@@ -17,6 +17,7 @@ export {
   User,
   Alert,
   Attachment,
+  TextBoxPropertiesWithoutMaxLength,
   TextMessage,
   ImageMessage,
   Message,

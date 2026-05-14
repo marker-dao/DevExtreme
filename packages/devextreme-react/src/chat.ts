@@ -8,13 +8,18 @@ import dxChat, {
 import { Component as BaseComponent, IHtmlOptions, ComponentRef, NestedComponentMeta } from "./core/component";
 import NestedOption from "./core/nested-option";
 
-import type { Message, AttachmentDownloadClickEvent, DisposingEvent, InitializedEvent, MessageDeletedEvent, MessageDeletingEvent, MessageEditCanceledEvent, MessageEditingStartEvent, MessageEnteredEvent, MessageUpdatedEvent, MessageUpdatingEvent, TypingEndEvent, TypingStartEvent, Attachment as ChatAttachment, User as ChatUser, SendButtonAction, SendButtonClickEvent } from "devextreme/ui/chat";
+import type { Message, AttachmentDownloadClickEvent, DisposingEvent, InitializedEvent, MessageDeletedEvent, MessageDeletingEvent, MessageEditCanceledEvent, MessageEditingStartEvent, MessageEnteredEvent, MessageUpdatedEvent, MessageUpdatingEvent, TypingEndEvent, TypingStartEvent, TextBoxPropertiesWithoutMaxLength, Attachment as ChatAttachment, User as ChatUser, SendButtonAction, SendButtonClickEvent } from "devextreme/ui/chat";
 import type { DisposingEvent as FileUploaderDisposingEvent, InitializedEvent as FileUploaderInitializedEvent, BeforeSendEvent, ContentReadyEvent, DropZoneEnterEvent, DropZoneLeaveEvent, FilesUploadedEvent, OptionChangedEvent, ProgressEvent, UploadAbortedEvent, UploadedEvent, UploadErrorEvent, UploadStartedEvent, ValueChangedEvent, UploadHttpMethod, FileUploadMode } from "devextreme/ui/file_uploader";
+import type { DisposingEvent as ButtonDisposingEvent, InitializedEvent as ButtonInitializedEvent, dxButtonOptions, ContentReadyEvent as ButtonContentReadyEvent, OptionChangedEvent as ButtonOptionChangedEvent, ClickEvent } from "devextreme/ui/button";
 import type { DisposingEvent as SpeechToTextDisposingEvent, InitializedEvent as SpeechToTextInitializedEvent, ContentReadyEvent as SpeechToTextContentReadyEvent, OptionChangedEvent as SpeechToTextOptionChangedEvent, CustomSpeechRecognizer as SpeechToTextCustomSpeechRecognizer, EndEvent, ErrorEvent, ResultEvent, StartClickEvent, StopClickEvent, SpeechRecognitionConfig as SpeechToTextSpeechRecognitionConfig } from "devextreme/ui/speech_to_text";
 import type { DisposingEvent as ButtonGroupDisposingEvent, InitializedEvent as ButtonGroupInitializedEvent, ContentReadyEvent as ButtonGroupContentReadyEvent, OptionChangedEvent as ButtonGroupOptionChangedEvent, dxButtonGroupItem, ItemClickEvent, SelectionChangedEvent } from "devextreme/ui/button_group";
-import type { Format, ValidationStatus, ButtonType, template, ButtonStyle, SingleMultipleOrNone } from "devextreme/common";
+import type { TextBoxPredefinedButton, TextEditorButton, LabelMode, MaskMode, EditorStyle, ValidationMessageMode, Position, ValidationStatus, TextEditorButtonLocation, Format, ButtonType, template, ButtonStyle, SingleMultipleOrNone } from "devextreme/common";
+import type { TextBoxType } from "devextreme/ui/text_box";
+import type { NativeEventInfo, EventInfo } from "devextreme/common/core/events";
+import type { event } from "devextreme/events/events.types";
 import type { CollectionWidgetItem } from "devextreme/ui/collection/ui.collection_widget.base";
 
+import type DOMComponent from "devextreme/core/dom_component";
 import type UploadInfo from "devextreme/file_management/upload_info";
 
 type ReplaceFieldTypes<TSource, TReplacement> = {
@@ -70,6 +75,7 @@ const Chat = memo(
       }), []);
 
       const expectedChildren = useMemo(() => ({
+        a1: { optionName: "a1", isCollectionItem: false },
         alert: { optionName: "alerts", isCollectionItem: true },
         chatItem: { optionName: "items", isCollectionItem: true },
         dayHeaderFormat: { optionName: "dayHeaderFormat", isCollectionItem: false },
@@ -113,6 +119,80 @@ const Chat = memo(
   ),
 ) as (props: React.PropsWithChildren<IChatOptions> & { ref?: Ref<ChatRef> }) => ReactElement | null;
 
+
+// owners:
+// Chat
+type IA1Props = React.PropsWithChildren<{
+  accessKey?: string | undefined;
+  activeStateEnabled?: boolean;
+  buttons?: Array<string | TextBoxPredefinedButton | TextEditorButton>;
+  disabled?: boolean;
+  elementAttr?: Record<string, any>;
+  focusStateEnabled?: boolean;
+  height?: number | string | undefined;
+  hint?: string | undefined;
+  hoverStateEnabled?: boolean;
+  inputAttr?: any;
+  isDirty?: boolean;
+  isValid?: boolean;
+  label?: string;
+  labelMode?: LabelMode;
+  mask?: string;
+  maskChar?: string;
+  maskInvalidMessage?: string;
+  maskRules?: any;
+  mode?: TextBoxType;
+  name?: string;
+  onChange?: ((e: NativeEventInfo<any>) => void);
+  onContentReady?: ((e: EventInfo<any>) => void);
+  onCopy?: ((e: NativeEventInfo<any>) => void);
+  onCut?: ((e: NativeEventInfo<any>) => void);
+  onDisposing?: ((e: EventInfo<any>) => void);
+  onEnterKey?: ((e: NativeEventInfo<any>) => void);
+  onFocusIn?: ((e: NativeEventInfo<any>) => void);
+  onFocusOut?: ((e: NativeEventInfo<any>) => void);
+  onInitialized?: ((e: { component: TextBoxPropertiesWithoutMaxLength, element: any }) => void);
+  onInput?: ((e: NativeEventInfo<any>) => void);
+  onKeyDown?: ((e: NativeEventInfo<any>) => void);
+  onKeyUp?: ((e: NativeEventInfo<any>) => void);
+  onOptionChanged?: ((e: { component: DOMComponent, element: any, fullName: string, model: any, name: string, previousValue: any, value: any }) => void);
+  onPaste?: ((e: NativeEventInfo<any>) => void);
+  onValueChanged?: ((e: { component: TextBoxPropertiesWithoutMaxLength, element: any, event: event, model: any, previousValue: Record<string, any>, value: Record<string, any> }) => void);
+  placeholder?: string;
+  readOnly?: boolean;
+  rtlEnabled?: boolean;
+  showClearButton?: boolean;
+  showMaskMode?: MaskMode;
+  spellcheck?: boolean;
+  stylingMode?: EditorStyle;
+  tabIndex?: number;
+  text?: string;
+  useMaskedValue?: boolean;
+  validationError?: any;
+  validationErrors?: Array<any>;
+  validationMessageMode?: ValidationMessageMode;
+  validationMessagePosition?: Position;
+  validationStatus?: ValidationStatus;
+  value?: string;
+  valueChangeEvent?: string;
+  visible?: boolean;
+  width?: number | string | undefined;
+}>
+const _componentA1 = (props: IA1Props) => {
+  return React.createElement(NestedOption<IA1Props>, {
+    ...props,
+    elementDescriptor: {
+      OptionName: "a1",
+      ExpectedChildren: {
+        button: { optionName: "buttons", isCollectionItem: true }
+      },
+    },
+  });
+};
+
+const A1 = Object.assign<typeof _componentA1, NestedComponentMeta>(_componentA1, {
+  componentType: "option",
+});
 
 // owners:
 // Chat
@@ -172,6 +252,30 @@ const _componentAuthor = (props: IAuthorProps) => {
 };
 
 const Author = Object.assign<typeof _componentAuthor, NestedComponentMeta>(_componentAuthor, {
+  componentType: "option",
+});
+
+// owners:
+// A1
+type IButtonProps = React.PropsWithChildren<{
+  location?: TextEditorButtonLocation;
+  name?: string | undefined;
+  options?: dxButtonOptions | undefined;
+}>
+const _componentButton = (props: IButtonProps) => {
+  return React.createElement(NestedOption<IButtonProps>, {
+    ...props,
+    elementDescriptor: {
+      OptionName: "buttons",
+      IsCollectionItem: true,
+      ExpectedChildren: {
+        options: { optionName: "options", isCollectionItem: false }
+      },
+    },
+  });
+};
+
+const Button = Object.assign<typeof _componentButton, NestedComponentMeta>(_componentButton, {
   componentType: "option",
 });
 
@@ -424,6 +528,54 @@ const MessageTimestampFormat = Object.assign<typeof _componentMessageTimestampFo
 });
 
 // owners:
+// Button
+type IOptionsProps = React.PropsWithChildren<{
+  accessKey?: string | undefined;
+  activeStateEnabled?: boolean;
+  disabled?: boolean;
+  elementAttr?: Record<string, any>;
+  focusStateEnabled?: boolean;
+  height?: number | string | undefined;
+  hint?: string | undefined;
+  hoverStateEnabled?: boolean;
+  icon?: string;
+  onClick?: ((e: ClickEvent) => void);
+  onContentReady?: ((e: ButtonContentReadyEvent) => void);
+  onDisposing?: ((e: ButtonDisposingEvent) => void);
+  onInitialized?: ((e: ButtonInitializedEvent) => void);
+  onOptionChanged?: ((e: ButtonOptionChangedEvent) => void);
+  rtlEnabled?: boolean;
+  stylingMode?: ButtonStyle;
+  tabIndex?: number;
+  template?: ((buttonData: { icon: string, text: string }, contentElement: any) => string | any) | template;
+  text?: string;
+  type?: ButtonType | string;
+  useSubmitBehavior?: boolean;
+  validationGroup?: string | undefined;
+  visible?: boolean;
+  width?: number | string | undefined;
+  render?: (...params: any) => React.ReactNode;
+  component?: React.ComponentType<any>;
+}>
+const _componentOptions = (props: IOptionsProps) => {
+  return React.createElement(NestedOption<IOptionsProps>, {
+    ...props,
+    elementDescriptor: {
+      OptionName: "options",
+      TemplateProps: [{
+        tmplOption: "template",
+        render: "render",
+        component: "component"
+      }],
+    },
+  });
+};
+
+const Options = Object.assign<typeof _componentOptions, NestedComponentMeta>(_componentOptions, {
+  componentType: "option",
+});
+
+// owners:
 // Chat
 type ISendButtonOptionsProps = React.PropsWithChildren<{
   action?: SendButtonAction;
@@ -657,12 +809,16 @@ export {
   Chat,
   IChatOptions,
   ChatRef,
+  A1,
+  IA1Props,
   Alert,
   IAlertProps,
   Attachment,
   IAttachmentProps,
   Author,
   IAuthorProps,
+  Button,
+  IButtonProps,
   ChatItem,
   IChatItemProps,
   CustomSpeechRecognizer,
@@ -677,6 +833,8 @@ export {
   IItemProps,
   MessageTimestampFormat,
   IMessageTimestampFormatProps,
+  Options,
+  IOptionsProps,
   SendButtonOptions,
   ISendButtonOptionsProps,
   SpeechRecognitionConfig,
