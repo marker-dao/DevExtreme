@@ -18280,7 +18280,11 @@ declare module DevExpress.ui {
    * @deprecated [depNote:dxFileUploaderOptions]
    * @deprecated Attention! This type is for internal purposes only. If you used it previously, please submit a ticket to our {@link https://supportcenter.devexpress.com/ticket/create Support Center}. We will check if there is an alternative solution.
    */
-  export interface dxFileUploaderOptions extends EditorOptions<dxFileUploader> {
+  export interface dxFileUploaderOptions
+    extends Omit<
+      EditorOptions<dxFileUploader>,
+      'validationMessageMode' | 'validationMessagePosition'
+    > {
     /**
      * [descr:dxFileUploaderOptions.abortUpload]
      */

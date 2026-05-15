@@ -8,16 +8,14 @@ import {
     NgModule,
     Host,
     SkipSelf,
-    Input,
-    Output,
-    EventEmitter
+    Input
 } from '@angular/core';
 
 
 
 
 import type UploadInfo from 'devextreme/file_management/upload_info';
-import type { BeforeSendEvent, ContentReadyEvent, DisposingEvent, DropZoneEnterEvent, DropZoneLeaveEvent, FilesUploadedEvent, InitializedEvent, OptionChangedEvent, ProgressEvent, UploadAbortedEvent, UploadedEvent, UploadErrorEvent, UploadStartedEvent, ValueChangedEvent, UploadHttpMethod, FileUploadMode } from 'devextreme/ui/file_uploader';
+import type { BeforeSendEvent, ContentReadyEvent, DisposingEvent, DropZoneEnterEvent, DropZoneLeaveEvent, FilesUploadedEvent, InitializedEvent, OptionChangedEvent, ProgressEvent, UploadAbortedEvent, UploadedEvent, UploadErrorEvent, UploadStartedEvent, ValueChangedEvent, UploadHttpMethod } from 'devextreme/ui/file_uploader';
 import type { ValidationStatus } from 'devextreme/common';
 
 import {
@@ -89,14 +87,6 @@ export class DxoChatFileUploaderOptionsComponent extends NestedOption implements
     }
     set chunkSize(value: number) {
         this._setOption('chunkSize', value);
-    }
-
-    @Input()
-    get dialogTrigger(): any | string | undefined {
-        return this._getOption('dialogTrigger');
-    }
-    set dialogTrigger(value: any | string | undefined) {
-        this._setOption('dialogTrigger', value);
     }
 
     @Input()
@@ -396,14 +386,6 @@ export class DxoChatFileUploaderOptionsComponent extends NestedOption implements
     }
 
     @Input()
-    get showFileList(): boolean {
-        return this._getOption('showFileList');
-    }
-    set showFileList(value: boolean) {
-        this._setOption('showFileList', value);
-    }
-
-    @Input()
     get tabIndex(): number {
         return this._getOption('tabIndex');
     }
@@ -484,14 +466,6 @@ export class DxoChatFileUploaderOptionsComponent extends NestedOption implements
     }
 
     @Input()
-    get uploadMode(): FileUploadMode {
-        return this._getOption('uploadMode');
-    }
-    set uploadMode(value: FileUploadMode) {
-        this._setOption('uploadMode', value);
-    }
-
-    @Input()
     get uploadUrl(): string {
         return this._getOption('uploadUrl');
     }
@@ -524,14 +498,6 @@ export class DxoChatFileUploaderOptionsComponent extends NestedOption implements
     }
 
     @Input()
-    get value(): Array<any> {
-        return this._getOption('value');
-    }
-    set value(value: Array<any>) {
-        this._setOption('value', value);
-    }
-
-    @Input()
     get visible(): boolean {
         return this._getOption('visible');
     }
@@ -548,12 +514,6 @@ export class DxoChatFileUploaderOptionsComponent extends NestedOption implements
     }
 
 
-    /**
-    
-     * This member supports the internal infrastructure and is not intended to be used directly from your code.
-    
-     */
-    @Output() valueChange: EventEmitter<Array<any>>;
     protected get _optionPath() {
         return 'fileUploaderOptions';
     }
@@ -562,10 +522,6 @@ export class DxoChatFileUploaderOptionsComponent extends NestedOption implements
     constructor(@SkipSelf() @Host() parentOptionHost: NestedOptionHost,
             @Host() optionHost: NestedOptionHost) {
         super();
-        this._createEventEmitters([
-            { emit: 'valueChange' }
-        ]);
-
         parentOptionHost.setNestedOption(this);
         optionHost.setHost(this, this._fullOptionPath.bind(this));
     }

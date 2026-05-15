@@ -8,18 +8,15 @@ import dxChat, {
 import { Component as BaseComponent, IHtmlOptions, ComponentRef, NestedComponentMeta } from "./core/component";
 import NestedOption from "./core/nested-option";
 
-import type { Message, AttachmentDownloadClickEvent, DisposingEvent, InitializedEvent, MessageDeletedEvent, MessageDeletingEvent, MessageEditCanceledEvent, MessageEditingStartEvent, MessageEnteredEvent, MessageUpdatedEvent, MessageUpdatingEvent, TypingEndEvent, TypingStartEvent, TextBoxPropertiesWithoutMaxLength, Attachment as ChatAttachment, User as ChatUser, SendButtonAction, SendButtonClickEvent } from "devextreme/ui/chat";
-import type { DisposingEvent as FileUploaderDisposingEvent, InitializedEvent as FileUploaderInitializedEvent, BeforeSendEvent, ContentReadyEvent, DropZoneEnterEvent, DropZoneLeaveEvent, FilesUploadedEvent, OptionChangedEvent, ProgressEvent, UploadAbortedEvent, UploadedEvent, UploadErrorEvent, UploadStartedEvent, ValueChangedEvent, UploadHttpMethod, FileUploadMode } from "devextreme/ui/file_uploader";
-import type { DisposingEvent as ButtonDisposingEvent, InitializedEvent as ButtonInitializedEvent, dxButtonOptions, ContentReadyEvent as ButtonContentReadyEvent, OptionChangedEvent as ButtonOptionChangedEvent, ClickEvent } from "devextreme/ui/button";
+import type { Message, AttachmentDownloadClickEvent, DisposingEvent, InitializedEvent, MessageDeletedEvent, MessageDeletingEvent, MessageEditCanceledEvent, MessageEditingStartEvent, MessageEnteredEvent, MessageUpdatedEvent, MessageUpdatingEvent, TypingEndEvent, TypingStartEvent, Attachment as ChatAttachment, User as ChatUser, SendButtonAction, SendButtonClickEvent } from "devextreme/ui/chat";
+import type { DisposingEvent as TextBoxDisposingEvent, InitializedEvent as TextBoxInitializedEvent, TextBoxType, ChangeEvent, ContentReadyEvent, CopyEvent, CutEvent, EnterKeyEvent, FocusInEvent, FocusOutEvent, InputEvent, KeyDownEvent, KeyUpEvent, OptionChangedEvent, PasteEvent, ValueChangedEvent } from "devextreme/ui/text_box";
+import type { DisposingEvent as FileUploaderDisposingEvent, InitializedEvent as FileUploaderInitializedEvent, ContentReadyEvent as FileUploaderContentReadyEvent, OptionChangedEvent as FileUploaderOptionChangedEvent, ValueChangedEvent as FileUploaderValueChangedEvent, BeforeSendEvent, DropZoneEnterEvent, DropZoneLeaveEvent, FilesUploadedEvent, ProgressEvent, UploadAbortedEvent, UploadedEvent, UploadErrorEvent, UploadStartedEvent, UploadHttpMethod } from "devextreme/ui/file_uploader";
+import type { DisposingEvent as ButtonDisposingEvent, InitializedEvent as ButtonInitializedEvent, ContentReadyEvent as ButtonContentReadyEvent, OptionChangedEvent as ButtonOptionChangedEvent, dxButtonOptions, ClickEvent } from "devextreme/ui/button";
 import type { DisposingEvent as SpeechToTextDisposingEvent, InitializedEvent as SpeechToTextInitializedEvent, ContentReadyEvent as SpeechToTextContentReadyEvent, OptionChangedEvent as SpeechToTextOptionChangedEvent, CustomSpeechRecognizer as SpeechToTextCustomSpeechRecognizer, EndEvent, ErrorEvent, ResultEvent, StartClickEvent, StopClickEvent, SpeechRecognitionConfig as SpeechToTextSpeechRecognitionConfig } from "devextreme/ui/speech_to_text";
 import type { DisposingEvent as ButtonGroupDisposingEvent, InitializedEvent as ButtonGroupInitializedEvent, ContentReadyEvent as ButtonGroupContentReadyEvent, OptionChangedEvent as ButtonGroupOptionChangedEvent, dxButtonGroupItem, ItemClickEvent, SelectionChangedEvent } from "devextreme/ui/button_group";
 import type { TextBoxPredefinedButton, TextEditorButton, LabelMode, MaskMode, EditorStyle, ValidationMessageMode, Position, ValidationStatus, TextEditorButtonLocation, Format, ButtonType, template, ButtonStyle, SingleMultipleOrNone } from "devextreme/common";
-import type { TextBoxType } from "devextreme/ui/text_box";
-import type { NativeEventInfo, EventInfo } from "devextreme/common/core/events";
-import type { event } from "devextreme/events/events.types";
 import type { CollectionWidgetItem } from "devextreme/ui/collection/ui.collection_widget.base";
 
-import type DOMComponent from "devextreme/core/dom_component";
 import type UploadInfo from "devextreme/file_management/upload_info";
 
 type ReplaceFieldTypes<TSource, TReplacement> = {
@@ -143,21 +140,21 @@ type IA1Props = React.PropsWithChildren<{
   maskRules?: any;
   mode?: TextBoxType;
   name?: string;
-  onChange?: ((e: NativeEventInfo<any>) => void);
-  onContentReady?: ((e: EventInfo<any>) => void);
-  onCopy?: ((e: NativeEventInfo<any>) => void);
-  onCut?: ((e: NativeEventInfo<any>) => void);
-  onDisposing?: ((e: EventInfo<any>) => void);
-  onEnterKey?: ((e: NativeEventInfo<any>) => void);
-  onFocusIn?: ((e: NativeEventInfo<any>) => void);
-  onFocusOut?: ((e: NativeEventInfo<any>) => void);
-  onInitialized?: ((e: { component: TextBoxPropertiesWithoutMaxLength, element: any }) => void);
-  onInput?: ((e: NativeEventInfo<any>) => void);
-  onKeyDown?: ((e: NativeEventInfo<any>) => void);
-  onKeyUp?: ((e: NativeEventInfo<any>) => void);
-  onOptionChanged?: ((e: { component: DOMComponent, element: any, fullName: string, model: any, name: string, previousValue: any, value: any }) => void);
-  onPaste?: ((e: NativeEventInfo<any>) => void);
-  onValueChanged?: ((e: { component: TextBoxPropertiesWithoutMaxLength, element: any, event: event, model: any, previousValue: Record<string, any>, value: Record<string, any> }) => void);
+  onChange?: ((e: ChangeEvent) => void);
+  onContentReady?: ((e: ContentReadyEvent) => void);
+  onCopy?: ((e: CopyEvent) => void);
+  onCut?: ((e: CutEvent) => void);
+  onDisposing?: ((e: TextBoxDisposingEvent) => void);
+  onEnterKey?: ((e: EnterKeyEvent) => void);
+  onFocusIn?: ((e: FocusInEvent) => void);
+  onFocusOut?: ((e: FocusOutEvent) => void);
+  onInitialized?: ((e: TextBoxInitializedEvent) => void);
+  onInput?: ((e: InputEvent) => void);
+  onKeyDown?: ((e: KeyDownEvent) => void);
+  onKeyUp?: ((e: KeyUpEvent) => void);
+  onOptionChanged?: ((e: OptionChangedEvent) => void);
+  onPaste?: ((e: PasteEvent) => void);
+  onValueChanged?: ((e: ValueChangedEvent) => void);
   placeholder?: string;
   readOnly?: boolean;
   rtlEnabled?: boolean;
@@ -382,7 +379,6 @@ type IFileUploaderOptionsProps = React.PropsWithChildren<{
   allowCanceling?: boolean;
   allowedFileExtensions?: Array<string>;
   chunkSize?: number;
-  dialogTrigger?: any | string | undefined;
   disabled?: boolean;
   dropZone?: any | string | undefined;
   elementAttr?: Record<string, any>;
@@ -402,25 +398,24 @@ type IFileUploaderOptionsProps = React.PropsWithChildren<{
   multiple?: boolean;
   name?: string;
   onBeforeSend?: ((e: BeforeSendEvent) => void);
-  onContentReady?: ((e: ContentReadyEvent) => void);
+  onContentReady?: ((e: FileUploaderContentReadyEvent) => void);
   onDisposing?: ((e: FileUploaderDisposingEvent) => void);
   onDropZoneEnter?: ((e: DropZoneEnterEvent) => void);
   onDropZoneLeave?: ((e: DropZoneLeaveEvent) => void);
   onFilesUploaded?: ((e: FilesUploadedEvent) => void);
   onInitialized?: ((e: FileUploaderInitializedEvent) => void);
-  onOptionChanged?: ((e: OptionChangedEvent) => void);
+  onOptionChanged?: ((e: FileUploaderOptionChangedEvent) => void);
   onProgress?: ((e: ProgressEvent) => void);
   onUploadAborted?: ((e: UploadAbortedEvent) => void);
   onUploaded?: ((e: UploadedEvent) => void);
   onUploadError?: ((e: UploadErrorEvent) => void);
   onUploadStarted?: ((e: UploadStartedEvent) => void);
-  onValueChanged?: ((e: ValueChangedEvent) => void);
+  onValueChanged?: ((e: FileUploaderValueChangedEvent) => void);
   progress?: number;
   readOnly?: boolean;
   readyToUploadMessage?: string;
   rtlEnabled?: boolean;
   selectButtonText?: string;
-  showFileList?: boolean;
   tabIndex?: number;
   uploadAbortedMessage?: string;
   uploadButtonText?: string;
@@ -431,25 +426,18 @@ type IFileUploaderOptionsProps = React.PropsWithChildren<{
   uploadFile?: ((file: any, progressCallback: (() => void)) => any);
   uploadHeaders?: any;
   uploadMethod?: UploadHttpMethod;
-  uploadMode?: FileUploadMode;
   uploadUrl?: string;
   validationError?: any;
   validationErrors?: Array<any>;
   validationStatus?: ValidationStatus;
-  value?: Array<any>;
   visible?: boolean;
   width?: number | string | undefined;
-  defaultValue?: Array<any>;
-  onValueChange?: (value: Array<any>) => void;
 }>
 const _componentFileUploaderOptions = (props: IFileUploaderOptionsProps) => {
   return React.createElement(NestedOption<IFileUploaderOptionsProps>, {
     ...props,
     elementDescriptor: {
       OptionName: "fileUploaderOptions",
-      DefaultsProps: {
-        defaultValue: "value"
-      },
     },
   });
 };

@@ -201,7 +201,10 @@ export type ValueChangedEvent = NativeEventInfo<dxFileUploader> & {
  * @namespace DevExpress.ui
  * @docid
  */
-export interface dxFileUploaderOptions extends EditorOptions<dxFileUploader> {
+export interface dxFileUploaderOptions extends Omit<
+    EditorOptions<dxFileUploader>,
+    'validationMessageMode' | 'validationMessagePosition'
+> {
     /**
      * @docid
      * @type_function_param2 uploadInfo?:UploadInfo

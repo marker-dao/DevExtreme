@@ -457,7 +457,6 @@ export interface dxChatOptions extends WidgetOptions<dxChat> {
     emptyViewTemplate?: template | null | ((data: EmptyViewTemplateData, itemElement: DxElement) => string | UserDefinedElement);
     /**
      * @docid
-     * @type dxFileUploaderOptions
      * @public
      */
     fileUploaderOptions?: Omit<FileUploaderProperties, 'dialogTrigger' | 'showFileList' | 'uploadMode' | 'value'>;

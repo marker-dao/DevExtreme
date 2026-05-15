@@ -16,12 +16,8 @@ import {
 
 
 
-import type DOMComponent from 'devextreme/core/dom_component';
 import type { TextBoxPredefinedButton, TextEditorButton, LabelMode, MaskMode, EditorStyle, ValidationMessageMode, Position, ValidationStatus } from 'devextreme/common';
-import type { TextBoxType } from 'devextreme/ui/text_box';
-import type { NativeEventInfo, EventInfo } from 'devextreme/common/core/events';
-import type { TextBoxPropertiesWithoutMaxLength } from 'devextreme/ui/chat';
-import type { event } from 'devextreme/events/events.types';
+import type { TextBoxType, ChangeEvent, ContentReadyEvent, CopyEvent, CutEvent, DisposingEvent, EnterKeyEvent, FocusInEvent, FocusOutEvent, InitializedEvent, InputEvent, KeyDownEvent, KeyUpEvent, OptionChangedEvent, PasteEvent, ValueChangedEvent } from 'devextreme/ui/text_box';
 
 import {
     DxIntegrationModule,
@@ -208,122 +204,122 @@ export class DxoChatA1Component extends NestedOption implements OnDestroy, OnIni
     }
 
     @Input()
-    get onChange(): ((e: NativeEventInfo<any>) => void) {
+    get onChange(): ((e: ChangeEvent) => void) {
         return this._getOption('onChange');
     }
-    set onChange(value: ((e: NativeEventInfo<any>) => void)) {
+    set onChange(value: ((e: ChangeEvent) => void)) {
         this._setOption('onChange', value);
     }
 
     @Input()
-    get onContentReady(): ((e: EventInfo<any>) => void) {
+    get onContentReady(): ((e: ContentReadyEvent) => void) {
         return this._getOption('onContentReady');
     }
-    set onContentReady(value: ((e: EventInfo<any>) => void)) {
+    set onContentReady(value: ((e: ContentReadyEvent) => void)) {
         this._setOption('onContentReady', value);
     }
 
     @Input()
-    get onCopy(): ((e: NativeEventInfo<any>) => void) {
+    get onCopy(): ((e: CopyEvent) => void) {
         return this._getOption('onCopy');
     }
-    set onCopy(value: ((e: NativeEventInfo<any>) => void)) {
+    set onCopy(value: ((e: CopyEvent) => void)) {
         this._setOption('onCopy', value);
     }
 
     @Input()
-    get onCut(): ((e: NativeEventInfo<any>) => void) {
+    get onCut(): ((e: CutEvent) => void) {
         return this._getOption('onCut');
     }
-    set onCut(value: ((e: NativeEventInfo<any>) => void)) {
+    set onCut(value: ((e: CutEvent) => void)) {
         this._setOption('onCut', value);
     }
 
     @Input()
-    get onDisposing(): ((e: EventInfo<any>) => void) {
+    get onDisposing(): ((e: DisposingEvent) => void) {
         return this._getOption('onDisposing');
     }
-    set onDisposing(value: ((e: EventInfo<any>) => void)) {
+    set onDisposing(value: ((e: DisposingEvent) => void)) {
         this._setOption('onDisposing', value);
     }
 
     @Input()
-    get onEnterKey(): ((e: NativeEventInfo<any>) => void) {
+    get onEnterKey(): ((e: EnterKeyEvent) => void) {
         return this._getOption('onEnterKey');
     }
-    set onEnterKey(value: ((e: NativeEventInfo<any>) => void)) {
+    set onEnterKey(value: ((e: EnterKeyEvent) => void)) {
         this._setOption('onEnterKey', value);
     }
 
     @Input()
-    get onFocusIn(): ((e: NativeEventInfo<any>) => void) {
+    get onFocusIn(): ((e: FocusInEvent) => void) {
         return this._getOption('onFocusIn');
     }
-    set onFocusIn(value: ((e: NativeEventInfo<any>) => void)) {
+    set onFocusIn(value: ((e: FocusInEvent) => void)) {
         this._setOption('onFocusIn', value);
     }
 
     @Input()
-    get onFocusOut(): ((e: NativeEventInfo<any>) => void) {
+    get onFocusOut(): ((e: FocusOutEvent) => void) {
         return this._getOption('onFocusOut');
     }
-    set onFocusOut(value: ((e: NativeEventInfo<any>) => void)) {
+    set onFocusOut(value: ((e: FocusOutEvent) => void)) {
         this._setOption('onFocusOut', value);
     }
 
     @Input()
-    get onInitialized(): ((e: { component: TextBoxPropertiesWithoutMaxLength, element: any }) => void) {
+    get onInitialized(): ((e: InitializedEvent) => void) {
         return this._getOption('onInitialized');
     }
-    set onInitialized(value: ((e: { component: TextBoxPropertiesWithoutMaxLength, element: any }) => void)) {
+    set onInitialized(value: ((e: InitializedEvent) => void)) {
         this._setOption('onInitialized', value);
     }
 
     @Input()
-    get onInput(): ((e: NativeEventInfo<any>) => void) {
+    get onInput(): ((e: InputEvent) => void) {
         return this._getOption('onInput');
     }
-    set onInput(value: ((e: NativeEventInfo<any>) => void)) {
+    set onInput(value: ((e: InputEvent) => void)) {
         this._setOption('onInput', value);
     }
 
     @Input()
-    get onKeyDown(): ((e: NativeEventInfo<any>) => void) {
+    get onKeyDown(): ((e: KeyDownEvent) => void) {
         return this._getOption('onKeyDown');
     }
-    set onKeyDown(value: ((e: NativeEventInfo<any>) => void)) {
+    set onKeyDown(value: ((e: KeyDownEvent) => void)) {
         this._setOption('onKeyDown', value);
     }
 
     @Input()
-    get onKeyUp(): ((e: NativeEventInfo<any>) => void) {
+    get onKeyUp(): ((e: KeyUpEvent) => void) {
         return this._getOption('onKeyUp');
     }
-    set onKeyUp(value: ((e: NativeEventInfo<any>) => void)) {
+    set onKeyUp(value: ((e: KeyUpEvent) => void)) {
         this._setOption('onKeyUp', value);
     }
 
     @Input()
-    get onOptionChanged(): ((e: { component: DOMComponent, element: any, fullName: string, model: any, name: string, previousValue: any, value: any }) => void) {
+    get onOptionChanged(): ((e: OptionChangedEvent) => void) {
         return this._getOption('onOptionChanged');
     }
-    set onOptionChanged(value: ((e: { component: DOMComponent, element: any, fullName: string, model: any, name: string, previousValue: any, value: any }) => void)) {
+    set onOptionChanged(value: ((e: OptionChangedEvent) => void)) {
         this._setOption('onOptionChanged', value);
     }
 
     @Input()
-    get onPaste(): ((e: NativeEventInfo<any>) => void) {
+    get onPaste(): ((e: PasteEvent) => void) {
         return this._getOption('onPaste');
     }
-    set onPaste(value: ((e: NativeEventInfo<any>) => void)) {
+    set onPaste(value: ((e: PasteEvent) => void)) {
         this._setOption('onPaste', value);
     }
 
     @Input()
-    get onValueChanged(): ((e: { component: TextBoxPropertiesWithoutMaxLength, element: any, event: event, model: any, previousValue: Record<string, any>, value: Record<string, any> }) => void) {
+    get onValueChanged(): ((e: ValueChangedEvent) => void) {
         return this._getOption('onValueChanged');
     }
-    set onValueChanged(value: ((e: { component: TextBoxPropertiesWithoutMaxLength, element: any, event: event, model: any, previousValue: Record<string, any>, value: Record<string, any> }) => void)) {
+    set onValueChanged(value: ((e: ValueChangedEvent) => void)) {
         this._setOption('onValueChanged', value);
     }
 
