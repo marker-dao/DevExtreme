@@ -10,14 +10,13 @@ import NestedOption from "./core/nested-option";
 
 import type { Message, AttachmentDownloadClickEvent, DisposingEvent, InitializedEvent, MessageDeletedEvent, MessageDeletingEvent, MessageEditCanceledEvent, MessageEditingStartEvent, MessageEnteredEvent, MessageUpdatedEvent, MessageUpdatingEvent, TypingEndEvent, TypingStartEvent, Attachment as ChatAttachment, User as ChatUser, SendButtonAction, SendButtonClickEvent } from "devextreme/ui/chat";
 import type { DisposingEvent as TextBoxDisposingEvent, InitializedEvent as TextBoxInitializedEvent, TextBoxType, ChangeEvent, ContentReadyEvent, CopyEvent, CutEvent, EnterKeyEvent, FocusInEvent, FocusOutEvent, InputEvent, KeyDownEvent, KeyUpEvent, OptionChangedEvent, PasteEvent, ValueChangedEvent } from "devextreme/ui/text_box";
-import type { DisposingEvent as FileUploaderDisposingEvent, InitializedEvent as FileUploaderInitializedEvent, ContentReadyEvent as FileUploaderContentReadyEvent, OptionChangedEvent as FileUploaderOptionChangedEvent, ValueChangedEvent as FileUploaderValueChangedEvent, BeforeSendEvent, DropZoneEnterEvent, DropZoneLeaveEvent, FilesUploadedEvent, ProgressEvent, UploadAbortedEvent, UploadedEvent, UploadErrorEvent, UploadStartedEvent, UploadHttpMethod } from "devextreme/ui/file_uploader";
 import type { DisposingEvent as ButtonDisposingEvent, InitializedEvent as ButtonInitializedEvent, ContentReadyEvent as ButtonContentReadyEvent, OptionChangedEvent as ButtonOptionChangedEvent, dxButtonOptions, ClickEvent } from "devextreme/ui/button";
 import type { DisposingEvent as SpeechToTextDisposingEvent, InitializedEvent as SpeechToTextInitializedEvent, ContentReadyEvent as SpeechToTextContentReadyEvent, OptionChangedEvent as SpeechToTextOptionChangedEvent, CustomSpeechRecognizer as SpeechToTextCustomSpeechRecognizer, EndEvent, ErrorEvent, ResultEvent, StartClickEvent, StopClickEvent, SpeechRecognitionConfig as SpeechToTextSpeechRecognitionConfig } from "devextreme/ui/speech_to_text";
 import type { DisposingEvent as ButtonGroupDisposingEvent, InitializedEvent as ButtonGroupInitializedEvent, ContentReadyEvent as ButtonGroupContentReadyEvent, OptionChangedEvent as ButtonGroupOptionChangedEvent, dxButtonGroupItem, ItemClickEvent, SelectionChangedEvent } from "devextreme/ui/button_group";
 import type { TextBoxPredefinedButton, TextEditorButton, LabelMode, MaskMode, EditorStyle, ValidationMessageMode, Position, ValidationStatus, TextEditorButtonLocation, Format, ButtonType, template, ButtonStyle, SingleMultipleOrNone } from "devextreme/common";
+import type { FileUploadMode } from "devextreme/ui/file_uploader";
 import type { CollectionWidgetItem } from "devextreme/ui/collection/ui.collection_widget.base";
 
-import type UploadInfo from "devextreme/file_management/upload_info";
 
 type ReplaceFieldTypes<TSource, TReplacement> = {
   [P in keyof TSource]: P extends keyof TReplacement ? TReplacement[P] : TSource[P];
@@ -43,7 +42,9 @@ type IChatOptions = React.PropsWithChildren<ReplaceFieldTypes<Properties, IChatO
   emptyViewComponent?: React.ComponentType<any>;
   messageRender?: (...params: any) => React.ReactNode;
   messageComponent?: React.ComponentType<any>;
+  defaultFileUploaderOptions?: Record<string, any>;
   defaultItems?: Array<Message>;
+  onFileUploaderOptionsChange?: (value: Record<string, any>) => void;
   onItemsChange?: (value: Array<Message>) => void;
 }>
 
@@ -64,10 +65,11 @@ const Chat = memo(
         }
       ), []);
 
-      const subscribableOptions = useMemo(() => (["items","suggestions.selectedItemKeys","suggestions.selectedItems"]), []);
+      const subscribableOptions = useMemo(() => (["fileUploaderOptions","fileUploaderOptions.value","items","suggestions.selectedItemKeys","suggestions.selectedItems"]), []);
       const independentEvents = useMemo(() => (["onAttachmentDownloadClick","onDisposing","onInitialized","onMessageDeleted","onMessageDeleting","onMessageEditCanceled","onMessageEditingStart","onMessageEntered","onMessageUpdated","onMessageUpdating","onTypingEnd","onTypingStart"]), []);
 
       const defaults = useMemo(() => ({
+        defaultFileUploaderOptions: "fileUploaderOptions",
         defaultItems: "items",
       }), []);
 
@@ -372,72 +374,21 @@ const Editing = Object.assign<typeof _componentEditing, NestedComponentMeta>(_co
 // owners:
 // Chat
 type IFileUploaderOptionsProps = React.PropsWithChildren<{
-  abortUpload?: ((file: any, uploadInfo?: UploadInfo) => any);
-  accept?: string;
-  accessKey?: string | undefined;
-  activeStateEnabled?: boolean;
-  allowCanceling?: boolean;
-  allowedFileExtensions?: Array<string>;
-  chunkSize?: number;
-  disabled?: boolean;
-  dropZone?: any | string | undefined;
-  elementAttr?: Record<string, any>;
-  focusStateEnabled?: boolean;
-  height?: number | string | undefined;
-  hint?: string | undefined;
-  hoverStateEnabled?: boolean;
-  inputAttr?: any;
-  invalidFileExtensionMessage?: string;
-  invalidMaxFileSizeMessage?: string;
-  invalidMinFileSizeMessage?: string;
-  isDirty?: boolean;
-  isValid?: boolean;
-  labelText?: string;
-  maxFileSize?: number;
-  minFileSize?: number;
-  multiple?: boolean;
-  name?: string;
-  onBeforeSend?: ((e: BeforeSendEvent) => void);
-  onContentReady?: ((e: FileUploaderContentReadyEvent) => void);
-  onDisposing?: ((e: FileUploaderDisposingEvent) => void);
-  onDropZoneEnter?: ((e: DropZoneEnterEvent) => void);
-  onDropZoneLeave?: ((e: DropZoneLeaveEvent) => void);
-  onFilesUploaded?: ((e: FilesUploadedEvent) => void);
-  onInitialized?: ((e: FileUploaderInitializedEvent) => void);
-  onOptionChanged?: ((e: FileUploaderOptionChangedEvent) => void);
-  onProgress?: ((e: ProgressEvent) => void);
-  onUploadAborted?: ((e: UploadAbortedEvent) => void);
-  onUploaded?: ((e: UploadedEvent) => void);
-  onUploadError?: ((e: UploadErrorEvent) => void);
-  onUploadStarted?: ((e: UploadStartedEvent) => void);
-  onValueChanged?: ((e: FileUploaderValueChangedEvent) => void);
-  progress?: number;
-  readOnly?: boolean;
-  readyToUploadMessage?: string;
-  rtlEnabled?: boolean;
-  selectButtonText?: string;
-  tabIndex?: number;
-  uploadAbortedMessage?: string;
-  uploadButtonText?: string;
-  uploadChunk?: ((file: any, uploadInfo: UploadInfo) => any);
-  uploadCustomData?: any;
-  uploadedMessage?: string;
-  uploadFailedMessage?: string;
-  uploadFile?: ((file: any, progressCallback: (() => void)) => any);
-  uploadHeaders?: any;
-  uploadMethod?: UploadHttpMethod;
-  uploadUrl?: string;
-  validationError?: any;
-  validationErrors?: Array<any>;
-  validationStatus?: ValidationStatus;
-  visible?: boolean;
-  width?: number | string | undefined;
+  dialogTrigger?: any | string | undefined;
+  showFileList?: boolean;
+  uploadMode?: FileUploadMode;
+  value?: Array<any>;
+  defaultValue?: Array<any>;
+  onValueChange?: (value: Array<any>) => void;
 }>
 const _componentFileUploaderOptions = (props: IFileUploaderOptionsProps) => {
   return React.createElement(NestedOption<IFileUploaderOptionsProps>, {
     ...props,
     elementDescriptor: {
       OptionName: "fileUploaderOptions",
+      DefaultsProps: {
+        defaultValue: "value"
+      },
     },
   });
 };

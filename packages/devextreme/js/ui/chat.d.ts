@@ -459,7 +459,7 @@ export interface dxChatOptions extends WidgetOptions<dxChat> {
      * @docid
      * @public
      */
-    fileUploaderOptions?: Omit<FileUploaderProperties, 'dialogTrigger' | 'showFileList' | 'uploadMode' | 'value'>;
+    fileUploaderOptions?: Pick<FileUploaderProperties, 'dialogTrigger' | 'showFileList' | 'uploadMode' | 'value'>;
     /**
      * @docid
      * @default true
