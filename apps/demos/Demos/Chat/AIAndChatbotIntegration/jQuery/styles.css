@@ -9,6 +9,7 @@
 
 .dx-chat-messagelist-empty-image {
   display: none;
+  pointer-events: none;
 }
 
 .dx-chat-messagelist-empty-message {
