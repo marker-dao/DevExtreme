@@ -1,0 +1,36 @@
+{
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "strict": true,
+    "verbatimModuleSyntax": true,
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "lib": ["es2022", "DOM", "DOM.Iterable"],
+    "noEmit": true,
+    "baseUrl": "../apps/demos",
+    "paths": {
+      "*": ["node_modules/*"]
+    }
+  },
+  "angularCompilerOptions": {
+    "strictTemplates": true,
+    "fullTemplateTypeCheck": true,
+    "strictInputTypes": true,
+    "strictNullInputTypes": true,
+    "strictAttributeTypes": true,
+    "strictOutputEventTypes": true,
+    "strictDomEventTypes": true,
+    "strictSafeNavigationTypes": true,
+    "strictDomLocalRefTypes": true,
+    "strictContextGenerics": true,
+    "strictLiteralTypes": true,
+    "extendedDiagnostics": {
+      "checks": {},
+      "defaultCategory": "error"
+    }
+  },
+  "include": [
+    "undefined-research.component.ts"
+  ]
+}

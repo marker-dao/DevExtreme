@@ -379,6 +379,10 @@ export default [
             '@typescript-eslint/prefer-interface': 'off',
             '@typescript-eslint/consistent-type-definitions': 'off',
             '@typescript-eslint/no-empty-interface': 'off',
+            // Optional-field convention (docs/UNDEFINED_NULL_CONVENTION.md). Starts as
+            // 'warn' while the existing violations are migrated; flip to 'error' once the
+            // burn-down (docs/check-default-type.js) reaches ~0 to guard against regressions.
+            'devextreme-custom/jsdoc-default-matches-type': 'warn',
         },
     },
     // Rules for build folder
