@@ -109,6 +109,10 @@ jobs:
         DEBUG: eslint:cli-engine
       run: pnpm exec nx lint-dts
 
+    - name: Lint .d.ts optional-field convention (regression ratchet)
+      working-directory: ./packages/devextreme
+      run: pnpm run lint-dts-convention
+
     - name: Lint Testcafe tests
       working-directory: ./e2e/testcafe-devextreme
       env:

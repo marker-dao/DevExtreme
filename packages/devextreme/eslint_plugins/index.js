@@ -3,6 +3,7 @@ const noDirectPreactSignalsCoreImport = require('./no_direct_preact_signals_core
 const preferSwitchTrue = require('./prefer_switch_true');
 const noDeferred = require('./no_deferred');
 const jsdocDefaultMatchesType = require('./jsdoc_default_matches_type');
+const literalUnionNeedsDefaultDoc = require('./literal_union_needs_default_doc');
 
 module.exports = {
     rules: {
@@ -10,5 +11,6 @@ module.exports = {
         'prefer-switch-true': preferSwitchTrue,
         'no-deferred': noDeferred,
         'jsdoc-default-matches-type': jsdocDefaultMatchesType,
+        'literal-union-needs-default-doc': literalUnionNeedsDefaultDoc,
     },
 };

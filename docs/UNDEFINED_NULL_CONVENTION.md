@@ -61,8 +61,8 @@
    опускают, `drop_down_button.dropDownOptions` имеет `@default {}` — один паттерн
    оформлен по-разному.
 
-**Сколько этого (измерено детектором §6):** hard-нарушений **621** (R1+R2+R4+R6),
-плюс review R3 (1) и R5 (109). Разбивка — §6.
+**Сколько этого (измерено детектором §6):** hard-нарушений **630** (R1+R2+R4+R6),
+плюс review R3 (1) и R5 (85). Разбивка — §6.
 
 **Прямое следствие для потребителя** (Angular, `strictTemplates`): форма типа в
 `.d.ts` определяет, можно ли легально написать `[input]="undefined"`. Расхождение
@@ -232,9 +232,29 @@ undefined-research.component.ts:38:28 - error TS2322:
 (`dropDownOptions?: PopupProperties`, `sendButtonOptions?: SendButtonProperties`,
 `editing?: EditingBase<…>`).
 
+**Что считается опцией-объектом** (по форме типа, как видит детектор §6): inline
+`{ … }`; ссылка на `*Properties`/`*Options`/`*Base`; `Record<…>`; утилита-обёртка
+`Omit`/`Pick`/`Partial`/`Required`/`Readonly` над таким типом (напр.
+`Omit<FileUploaderProperties, 'value'>` — это `fileUploaderOptions`/`speechToTextOptions`).
+Union с `| null`/`| undefined` — тоже (смотрим на члены без `null`/`undefined`).
+
+**Объектные опции — два вида** (различаются по seed; lint их **не** различает — seed в рантайме):
+
+| Вид | Примеры | seed | тип | `@default` |
+|---|---|---|---|---|
+| «всегда-вкл» конфиг (merge + вложенные пути `option('editing.mode')`) | `editing`, `dropDownOptions`, `sendButtonOptions` | объект (под-дефолты / `{}`) | `foo?: NestedProperties` | объект-seed |
+| «опц. фича, выключена» | `fileUploaderOptions`, `speechToTextOptions` | `undefined` | `foo?: NestedProperties \| undefined` | `undefined` |
+
+«Всегда-вкл» **не может быть `undefined`**: рантайм адресует под-опции по пути
+(`option('editing.mode')`, [m_editing.ts:209](../packages/devextreme/js/__internal/grids/grid_core/editing/m_editing.ts))
+и мёржит частичные апдейты — нужен базовый объект. «Опц. фича» по умолчанию не
+сконфигурирована → `undefined`. (Это правит §3.6: «всегда объект» верно только для merge-вида.)
+
+Таблица ниже — про **«всегда-вкл»** вид:
+
 | Что | Как |
 |---|---|
-| **тип** | `foo?: NestedProperties` — без `\| undefined`, без `\| null` (рантайм всегда держит объект, минимум `{}` — §3.6) |
+| **тип** | `foo?: NestedProperties` — без `\| undefined`, без `\| null` |
 | **`@default`** | **зеркалит seed-объект из `defaultOptions`** (см. ниже) |
 | **дефолты под-свойств** | на **членах** `NestedProperties`, каждый со своим `@default` |
 
@@ -334,64 +354,70 @@ focusedRowKey?: TKey | null;               // + defaultOptions: { focusedRowKey:
 
 ---
 
-## 6. Контроль и энфорсмент (детектор)
+## 6. Контроль и энфорсмент
 
-Два инструмента с одной логикой, но разными границами:
+Единый источник истины — **eslint-плагин `devextreme-custom`** (Фаза 1 выполнена). Два правила:
 
-- **ESLint-правило** `devextreme-custom/jsdoc-default-matches-type`
-  ([packages/devextreme/eslint_plugins/jsdoc_default_matches_type.js](../packages/devextreme/eslint_plugins/jsdoc_default_matches_type.js)) —
-  работает на TSESTree (AST `@typescript-eslint`), per-file, без типовой информации.
-  Кодирует **R1, R2, R4, R6** (hard). Включено в `lint-dts` как `warn` (см. §7).
-- **Burn-down-скрипт** ([docs/check-default-type.js](check-default-type.js), TS Compiler API,
-  top-level union-члены, не лезет во вложенные объект-литералы) — полный набор
-  **R1–R6** (вкл. review R3/R5, которым нужен cross-file/runtime-контекст).
+- **`jsdoc-default-matches-type`**
+  ([eslint_plugins/jsdoc_default_matches_type.js](../packages/devextreme/eslint_plugins/jsdoc_default_matches_type.js)) —
+  синтаксическое (TSESTree, per-file, без type info): **R1, R2, R4, R6**.
+- **`literal-union-needs-default-doc`**
+  ([eslint_plugins/literal_union_needs_default_doc.js](../packages/devextreme/eslint_plugins/literal_union_needs_default_doc.js)) —
+  **type-aware** (через TypeChecker; резолвит литерал-union даже через cross-file алиас
+  типа `MessageType`): **R5** (review). Общие хелперы — `annotation_core.js`.
 
-Прогон по 295 публичным `.d.ts` (числа правила и скрипта сходятся на R1/R2/R4/R6):
+Оба включены для `js/**/*.d.ts` в `eslint.config.mjs` как **`warn`** — видны в редакторе
+и в `lint-dts`, но сами CI не валят (легаси-нарушений ещё много). Прогон по 295 `.d.ts`:
 
-| Правило | Смысл | Кол-во | Тип | В eslint-правиле |
+| Правило | Смысл | Кол-во | Тип | eslint-rule |
 |---|---|---|---|---|
-| **R1** | `@default null`, но в типе нет `null` | **399** | hard | да |
-| **R2** | конкретный `@default`, но в типе `\| undefined` | **30** | hard | да |
-| **R3** | конкретный `@default`, но в типе `null` | **1** (`check_box.value`) | review (tri-state) | нет |
-| **R4** | опция-объект (A-obj) без `@default` | **125** | hard (проставить `@default = seed`) | да |
-| **R5** | литерал-union поле без `@default` | **109** | review (P2: НЕ добавлять `@default`; проверить описание) | нет (нужен cross-file) |
-| **R6** | `@default undefined`, но в типе нет `\| undefined` | **67** (вкл. `buttons`) | hard | да |
-| | **итого hard (R1+R2+R4+R6)** | **621** | | |
+| **R1** | `@default null`, но в типе нет `null` | **399** | hard | jsdoc-default-matches-type |
+| **R2** | конкретный `@default`, но в типе `\| undefined` | **30** | hard | jsdoc-default-matches-type |
+| **R3** | конкретный `@default`, но в типе `null` | **1** (`check_box.value`) | review | — (исключение, в правило не выносим) |
+| **R4** | опция-объект (A-obj) без `@default` | **128** | hard | jsdoc-default-matches-type |
+| **R5** | литерал-union (≥2 литерала) без `@default` | **85** | review | literal-union-needs-default-doc |
+| **R6** | `@default undefined`, но в типе нет `\| undefined` | **73** (вкл. `buttons` и объект-опции) | hard | jsdoc-default-matches-type |
+| | **итого hard (R1+R2+R4+R6)** | **630** | | |
 
-Каждое правило ловит **рассогласование**; направление фикса выбирается по категории
-(напр. R6: опция → добавить `| undefined`; поле B с лишним `@default undefined` → убрать тег).
-R3 = 1 совпадает ровно с известным исключением — валидация точности.
-R5 при P2 — **review для описаний**, не для `@default`: ловит `Message.type`, но шумит
-(event-литералы `'dxpointerdown'`, info-объекты `environment.platform`) → ручной фильтр.
+R3 не выносим в правило — единственный кейс (`check_box.value`) легитимен. R5 — type-aware
+review (шумит на enum-подобных константах), потому `warn`, не блок; под P2 фикс — проза в
+описании, не `@default`.
 
-**Граница инструмента.** Lint на `.d.ts` видит слой «тип ↔ `@default`», но **не рантайм**
-(`defaultOptions`, `=== null`, seed-значения). Категорию различает статически по §4.2
-(`*Options`-интерфейс vs объект-тип). Поэтому:
-- **eslint-правило** держит инвариант «тип ↔ `@default`» — барьер от регресса в каждом PR;
-- **миграция вручную** (codemod отклонён, см. ниже) со чтением `_getDefaultOptions`
-  определяет seed/категорию и выбирает направление фикса.
+**Детект опции-объекта (R4/R6)** смотрит **сквозь** union (`Props | undefined`) и
+утилиты (`Omit`/`Pick`/`Partial`/`Required`/`Readonly`/`Record`). R6 объектные опции
+**не исключает**: для них `@default undefined` без `| undefined` — тоже рассогласование
+(чинится либо `| undefined` для «опц.фичи», либо `@default {}` для «всегда-вкл» — по seed, §4.4).
 
-**Burn-down.** Скрипт печатает одно число (`итого hard = 621`). Гнать в CI на каждый
-PR (не блокирующе), коммитить число, строить график; каждая команда фильтрует свой срез
-по путям (`viz/*`, `grids/*`, …). Кадэнс: baseline сейчас + автоматически per-PR.
+**Регресс-гейт (ратчет).** Правила на `warn` сами CI не валят, поэтому новый warning ловит
+ратчет — **тонкий счётчик поверх вывода правил** (НЕ второй детектор: логика только в
+правилах):
+- [build/linters/default-convention-ratchet.js](../packages/devextreme/build/linters/default-convention-ratchet.js)
+  считает warning'и наших правил и сравнивает с baseline
+  ([default-convention.baseline.json](../packages/devextreme/build/linters/default-convention.baseline.json));
+- **падает, если число выросло** (добавлен новый warning);
+- `pnpm run lint-dts-convention` — CI-шаг в `lint.yml` (после «Lint .d.ts»);
+- `pnpm run lint-dts-convention:update` — пересчитать baseline (когда нарушения починены, тем же PR).
 
-> **Статус (Фаза 1 выполнена).** ESLint-правило приземлено в плагин
-> `devextreme-custom` и включено для `js/**/*.d.ts` в `eslint.config.mjs` как `warn`
-> (CI зелёный: `lint-dts` → 0 errors, 621 warnings). Unit-тесты —
-> `eslint_plugins/jsdoc_default_matches_type.test.js`. R3/R5 остаются только в
-> burn-down-скрипте (review, нужен cross-file).
+**glob-override.** Чистые области флипаем в `error` через отдельный блок в `eslint.config.mjs`
+(`files: [...]` → `error`): новое нарушение там — хард-фейл сразу, не дожидаясь ратчета. По
+мере чистки наполняем glob; в конце всё `error`, ратчет выкидываем.
+
+**Граница инструмента.** Lint видит слой «тип ↔ `@default`», но **не рантайм**
+(`defaultOptions`, `=== null`, seed-значения). Категорию различает статически по §4.2.
+Поэтому массовую правку делаем руками, со чтением `_getDefaultOptions` (codemod отклонён).
 
 ---
 
 ## 7. План миграции (для раската на команды)
 
 **Автоматический codemod отклонён.** Массовую правку делаем **руками**, по командам:
-детектор даёт **worklist** (что чинить), burn-down **меряет прогресс**, eslint **держит
-от регресса**. Порядок — от дёшево-безопасного к дорого-спорному.
+`lint-dts` (warn'и правил) даёт **worklist** (что чинить), ратчет **держит от регресса**
+(§6), `error`-glob строго запрещает в уже чистых областях. Порядок — от дёшево-безопасного
+к дорого-спорному.
 
 **Шаг 0. Зафиксировать правило.** Внести §4 в
 [.github/instructions/API_conventions.instructions.md](../.github/instructions/API_conventions.instructions.md)
-как нормативный раздел.
+как нормативный раздел. (Энфорсмент — §6 — уже приземлён.)
 
 **Шаг 1. Пилот — `chat.d.ts`.** Категория B: убрать `| undefined`/`@default` у полей
 `Message`. A-obj: проставить `@default = seed` (`sendButtonOptions`, `editing`).
@@ -402,9 +428,10 @@ PR (не блокирующе), коммитить число, строить г
 `selectedRowKey`, `editCardKey` — выровнять тип/JSDoc/`defaultOptions` под рантайм.
 С регресс-тестами гридов.
 
-**Шаг 3. Массовая правка руками по командам** под надзором burn-down + eslint. Для
+**Шаг 3. Массовая правка руками по командам** под надзором ратчета + `error`-glob (§6). Для
 каждого optional-поля: найти в `_getDefaultOptions`, определить категорию (§4.2), свести
-к таблицам §4. Точки со строгим `=== null` — отдельным списком (ручное решение).
+к таблицам §4. Починив область до 0 → добавить её glob в `error`-блок + `lint-dts-convention:update`.
+Точки со строгим `=== null` — отдельным списком (ручное решение).
 
 **Шаг 4. Унификация `defaultOptions` (`null → undefined`).** Отдельный поток в ядре.
 Безопасно благодаря `isDefined` (§3.4), кроме списка из шага 3.
@@ -459,4 +486,10 @@ PR (не блокирующе), коммитить число, строить г
 - [undefined-research.component.ts](undefined-research.component.ts) — песочница.
 - [tsconfig.research.json](tsconfig.research.json) — изолированный конфиг.
 - Воспроизведение песочницы: `cd apps/demos && pnpm exec ngc --noEmit --project ../../docs/tsconfig.research.json`.
-- Прототип детектора: `check-default-type.js` (числа §1/§6).
+- Энфорсмент (Фаза 1, в `packages/devextreme/`):
+  - `eslint_plugins/jsdoc_default_matches_type.js` (+ `.test.js`) — R1/R2/R4/R6;
+  - `eslint_plugins/literal_union_needs_default_doc.js` (+ `.test.js`) — R5 (type-aware);
+  - `eslint_plugins/annotation_core.js` (+ `.test.js`) — общие хелперы;
+  - `build/linters/default-convention-ratchet.js` + `default-convention.baseline.json` — ратчет;
+  - CI-шаг в `.github/workflows/lint.yml`;
+  - запуск: `pnpm run lint-dts-convention` (`:update` — пересчёт baseline).
