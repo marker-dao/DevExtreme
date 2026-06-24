@@ -379,18 +379,11 @@ export default [
             '@typescript-eslint/prefer-interface': 'off',
             '@typescript-eslint/consistent-type-definitions': 'off',
             '@typescript-eslint/no-empty-interface': 'off',
-            // Optional-field convention (docs/UNDEFINED_NULL_CONVENTION.md):
-            // R1/R2/R4/R6 (syntactic) + R5 (type-aware, review). Severity 'warn' during
-            // migration; the CI ratchet (build/linters/default-convention-ratchet.js)
-            // fails on any NEW warning, and clean areas are flipped to 'error' in the block below.
             'devextreme-custom/jsdoc-default-matches-type': 'warn',
             'devextreme-custom/literal-union-needs-default-doc': 'warn',
         },
     },
     {
-        // Optional-field convention — clean areas enforced as 'error'. Add a glob here once
-        // an area's warnings reach 0 (see docs/UNDEFINED_NULL_CONVENTION.md §7). The placeholder
-        // glob matches nothing until filled.
         files: ['js/_convention-clean-areas/**/*.d.ts'],
         rules: {
             'devextreme-custom/jsdoc-default-matches-type': 'error',
