@@ -1,4 +1,7 @@
-# Конвенция: `undefined` / `null` / `| undefined` для optional-полей в `.d.ts` ядра
+# Optional-поля в `.d.ts` ядра (`undefined` / `null` / `| undefined`): обоснование и анализ
+
+> Это подробное обоснование с пруфами и замерами. Короткая нормативная версия правила —
+> [OPTIONAL_FIELDS_CONVENTION.md](OPTIONAL_FIELDS_CONVENTION.md).
 
 ## TL;DR
 
@@ -35,7 +38,7 @@
 
 **Два слоя контроля.** Линтер ловит механику (тип ↔ `@default`); выбор
 `undefined`-vs-`null` для нового поля линтер сделать **не может** → этот смысловой
-выбор закреплён в `API_conventions.instructions.md` для ревью (GitHub Copilot) (§6).
+выбор закреплён в `optional-fields-typing.instructions.md` для ревью (GitHub Copilot) (§6).
 
 ---
 
@@ -490,7 +493,7 @@ review (шумит на enum-подобных константах), потом�
 
 1. **Линтер** (этот §6) — механическая проверка «тип ↔ `@default`» (R1/R2/R4/R5/R6) +
    ратчет от регресса. Объективно, без смысла.
-2. **Ревью (GitHub Copilot) через `API_conventions.instructions.md`** — смысловой слой.
+2. **Ревью (GitHub Copilot) через `optional-fields-typing.instructions.md`** — смысловой слой.
    Нормативная часть конвенции (§4, особенно §4.8: «новое поле → `undefined`; `null`
    только с обоснованием») вносится в инструкции, чтобы Copilot на PR-ревью замечал и
    превентил `null` в новом поле без обоснования — то, что линтер зафиксировать не
@@ -499,99 +502,3 @@ review (шумит на enum-подобных константах), потом�
 Массовую правку существующего делаем руками, с чтением `_getDefaultOptions`.
 Для существующих полей — **без BC** (§4.8): тип расширяем под рантайм,
 рантайм не трогаем.
-
----
-
-## 7. План миграции
-
-**Шаг 0. Зафиксировать правило (оба слоя §6).** Внести §4 (особенно §4.8) в
-[.github/instructions/API_conventions.instructions.md](../.github/instructions/API_conventions.instructions.md)
-как нормативный раздел — это **смысловой слой**: даёт GitHub Copilot основание
-превентить `null` в новом поле без обоснования (линтер §6 — механический слой — это
-не ловит). Механический энфорсмент (линтер + ратчет) уже приземлён.
-
-**Шаг 1. Пилот — `chat.d.ts`.** Категория B: убрать `| undefined`/`@default` у полей
-`Message`. A-obj: проставить `@default = дефолт` (`sendButtonOptions`, `editing`).
-Прогнать `regenerate-all` → `update-ts-reexports` → `lint-dts`. Песочница (§2) — приёмочный
-тест. Один PR, один ревьюер: эталон стиля.
-
-**Шаг 2. Категория A с явными расхождениями (без BC).** `focusedRowKey`, `editRowKey`,
-`selectedRowKey`, `editCardKey`, `selectedItemKey` — рантайм держит `null`, тип его не
-допускает. Чиним **расширением типа под рантайм** (добавить `| null`), `@default null`
-и рантайм **оставляем** (§4.8). Побочно снимаются `// @ts-expect-error public API needs
-to be fixed` над такими дефолтами. Рантайм не трогаем → регресс-риска нет.
-
-**Шаг 3. Массовая правка руками по командам** под надзором ратчета + `error`-glob (§6). Для
-каждого optional-поля: найти в `_getDefaultOptions`, определить категорию (§4.2), свести
-к таблицам §4 — для **существующего** поля **без BC** (тип расширяем под рантайм, рантайм
-не трогаем, §4.8). Починив область до 0 → добавить её glob в `error`-блок +
-`lint-dts-convention:update`.
-
-**Шаг 4. ~~Унификация `defaultOptions` (`null → undefined`)~~ — НЕ делаем для
-существующего.** Массовая миграция рантайм-`null → undefined` = **breaking change**
-(§4.8: меняет возврат `option()` и компиляцию `[x]="null"`), поэтому **отменена** для
-существующих опций — легаси-`null` остаётся. Преференция `undefined` применяется только
-к **новому** коду (Шаг 0 + ревью, §6). Точечная миграция существующего `null → undefined`
-возможна лишь как осознанный BC в major-релизе с планом совместимости — вне этого плана.
-
----
-
-## 8. Вне этой конвенции (отдельные задачи)
-
-- **`dataSource?: ... | null` × 42 (остаётся, не трогаем).** Рантайм везде loose
-  truthiness → `| null` по-хорошему лишний, но `dataSource: null` документирован
-  (`@default null`) и встречается в туториалах/демо → снятие `| null` = **breaking
-  change**. По §4.8 (существующее, без BC) **оставляем как есть**. Это канонический
-  «терпимый легаси-`null`»: тип/`@default`/рантайм между собой согласованы (линтер
-  молчит), поэтому в списке нарушений §6 его и нет. В новом коде так не пишем.
-- **template/icon-поля** (`messageTemplate`, `emptyViewTemplate`, `expandIcon`,
-  `collapseIcon`): `null` декоративный (нет `=== null`) → по конвенции `undefined`, низкий приоритет.
-- **Дедупликация дефолтов опций-объектов** (`chat.sendButtonOptions` дублирует под-дефолты):
-  код-клинап.
-- **Coordination с тех.райтерами:** P2 переносит «поведение при отсутствии» в текстовые
-  описания. До раската — договориться о шаблоне формулировки («If not specified, …») и
-  пройтись по затронутым типам (`Message.type`, `TextEditorButton.location` и т.п.),
-  иначе пользователь теряет инфу. **Открытый пункт.**
-
----
-
-## 9. Принятое решение по `@default`: P2 (запись для истории)
-
-Развилка, которую обсуждали: **что отражает `@default` — «эффективный дефолт»
-(поведение при отсутствии) или только то, что РЕАЛЬНО хранится?**
-
-- **P1 — «эффективный дефолт».** Ведёт себя как `X` → `@default X`, даже если `X` нигде
-  не хранится. → `@default 'text'` у `Message.type`, `@default 'after'` у `location`,
-  `@default {}` у `sendButtonOptions`.
-- **P2 — «только хранимое» (ПРИНЯТО).** `@default` только когда значение лежит в storage.
-  Point-of-use дефолт → тега нет, поведение в описание. → у `Message.type` и `location`
-  тега **нет**; `sendButtonOptions` → `@default { icon, action }` (реальный дефолт).
-
-**Почему P2:** честнее (тег не утверждает того, чего нет в рантайме); механически
-проверяем линтером («`@default` == то, что в `defaultOptions`/объекте»); убирает
-субъективное «является ли это эффективным дефолтом». Минус — `@default` в API-доке
-больше не показывает поведение при отсутствии; закрывается описанием типа (см. §8,
-открытый пункт с тех.райтерами).
-
-Три кейса под P2 (с пруфами):
-
-| Кейс | Рантайм | Решение (P2) |
-|---|---|---|
-| `chat.sendButtonOptions` | дефолт `{ icon:'arrowright', action:'send', onClick:undefined }` ([chat.ts:118](../packages/devextreme/js/__internal/ui/chat/chat.ts)) | `@default { icon: 'arrowright', action: 'send' }` (зеркало дефолта); НЕ `{}` |
-| `TextEditorButton.location` | `const { location = 'after' } = buttonInfo` ([index.ts:167](../packages/devextreme/js/__internal/ui/text_box/texteditor_button_collection/index.ts)) — не хранится | `@default` убрать; поведение в описание |
-| `MessageBase.type` | `switch (type) { … default: text }` ([messagebubble.ts:120](../packages/devextreme/js/__internal/ui/chat/messagebubble.ts)) — не хранится | `@default` не ставить; поведение в описание |
-
----
-
-## Артефакты
-
-- [undefined-research.component.ts](undefined-research.component.ts) — песочница.
-- [tsconfig.research.json](tsconfig.research.json) — изолированный конфиг.
-- Воспроизведение песочницы: `cd apps/demos && pnpm exec ngc --noEmit --project ../../docs/tsconfig.research.json`.
-- Энфорсмент (Фаза 1, в `packages/devextreme/`):
-  - `eslint_plugins/jsdoc_default_matches_type.js` (+ `.test.js`) — R1/R2/R4/R6;
-  - `eslint_plugins/literal_union_needs_default_doc.js` (+ `.test.js`) — R5 (type-aware);
-  - `eslint_plugins/annotation_core.js` (+ `.test.js`) — общие хелперы;
-  - `build/linters/default-convention-ratchet.js` + `default-convention.baseline.json` — ратчет;
-  - CI-шаг в `.github/workflows/lint.yml`;
-  - запуск: `pnpm run lint-dts-convention` (`:update` — пересчёт baseline).

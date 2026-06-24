@@ -1,9 +1,9 @@
-# Конвенция: типизация optional-полей в публичном `.d.ts`
+# Конвенция типизации optional-полей в публичном API (`?`, `| undefined`, `| null`, `@default`)
 
 > - Обоснование, runtime-пруфы и замеры → [UNDEFINED_NULL_CONVENTION.md](UNDEFINED_NULL_CONVENTION.md).
-> - **Следующий шаг** этот раздел переезжает в
->   [.github/instructions/API_conventions.instructions.md](../.github/instructions/API_conventions.instructions.md)
->   как нормативная инструкция.
+> - **Enforced-версия для Copilot-ревью** (на английском, в репозитории) —
+>   [.github/instructions/optional-fields-typing.instructions.md](../.github/instructions/optional-fields-typing.instructions.md).
+>   Эта страница и тот файл — синхронные копии правила; правишь правило — меняй оба.
 
 ---
 
@@ -148,7 +148,7 @@ popup?: PopupProperties;
 
 **Почему голый `?`:** поле не задают в `defaultOptions`, и передавать ему `undefined` не
 нужно — значение либо задают, либо опускают (это и значит `?`). Под
-`exactOptionalPropertyTypes: true` (настройка строгости в ts-congig) тип `foo?: T` разрешает поле **опустить**, но не
+`exactOptionalPropertyTypes: true` (настройка строгости в tsconfig) тип `foo?: T` разрешает поле **опустить**, но не
 разрешает присвоить ему `undefined` напрямую (`{ foo: undefined }` — ошибка компиляции),
 что и соответствует правилу «задают значение или опускают».
 
@@ -249,7 +249,7 @@ selectedItemKey?: string | number | null;   // стало: тип расшири
 **2. Ревью (смысл).** Линтер видит «тип ↔ `@default`», но **не рантайм** и **не может
 решить, что правильно для нового поля — `undefined` или `null`** (это смысловой выбор).
 Поэтому правило «новое поле → `undefined`; `null` только с обоснованием» закреплено в
-`API_conventions.instructions.md` — для ревью GitHub Copilot. То, что линтер структурно
+`optional-fields-typing.instructions.md` — для ревью GitHub Copilot. То, что линтер структурно
 не ловит, ловит ревью.
 
 **Граница линтера на практике:** при правке поля категорию и направление сверяй по
