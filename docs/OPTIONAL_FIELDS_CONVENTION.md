@@ -1,6 +1,5 @@
 # Конвенция типизации optional-полей в публичном API (`?`, `| undefined`, `| null`, `@default`)
 
-> - Обоснование, runtime-пруфы и замеры → [UNDEFINED_NULL_CONVENTION.md](UNDEFINED_NULL_CONVENTION.md).
 > - **Enforced-версия для Copilot-ревью** (на английском, в репозитории) —
 >   [.github/instructions/optional-fields-typing.instructions.md](../.github/instructions/optional-fields-typing.instructions.md).
 >   Эта страница и тот файл — синхронные копии правила; правишь правило — меняй оба.
@@ -65,7 +64,10 @@
 **Почему дефолт `undefined` ⇒ `| undefined`:** генератор обёрток теряет `?`, поэтому
 без `| undefined` в исходнике обёртка не может выразить «не задано», и
 `strictTemplates` ломает легальные `[input]="undefined"`, `[input]="obs$ | async"`,
-`[input]="signal()"`. См. песочницу в §2 обоснования.
+`[input]="signal()"`. Подтверждено баг-репортом
+[T1093403](https://isc.devexpress.com/internal/ticket/details/T1093403) (I. Kharchenko, 2022):
+без `| undefined` обёртка генерит `set width(value: number | Function | string)`, и
+`[width]="undefined"` не компилируется.
 
 **Как надо / как не надо** (JSDoc-тег `@default` сразу показывает, согласован ли тип):
 ```ts
@@ -184,7 +186,9 @@ changes**. Отсюда два режима:
 - в `defaultOptions` дефолт = `undefined` (не `null`);
 - тип и `@default` — под `undefined`;
 - `null` допустим только с явным обоснованием — когда рантайм реально делает `=== null`.
-  Без обоснования ревью отклоняет (смысловой слой, см. «Как это контролируется»).
+  В массе код трактует `null` и `undefined` одинаково (через `isDefined`), поэтому новому
+  полю `null`, как правило, не нужен. Без обоснования ревью отклоняет (смысловой слой,
+  см. «Как это контролируется»).
 
 **2. Существующее поле — приводим к правилу без breaking changes:**
 - рантайм **не трогаем**: если там лежит `null`, менять его на `undefined` нельзя — это
@@ -244,7 +248,7 @@ selectedItemKey?: string | number | null;   // стало: тип расшири
   предупреждение. Областей под `error` становится больше по мере чистки; в конце весь код
   под `error`, и ратчет можно убрать.
 
-Подробности — §6 обоснования.
+Реализация правил и ратчета — в `packages/devextreme/eslint_plugins/` и `build/linters/`.
 
 **2. Ревью (смысл).** Линтер видит «тип ↔ `@default`», но **не рантайм** и **не может
 решить, что правильно для нового поля — `undefined` или `null`** (это смысловой выбор).
