@@ -8,7 +8,7 @@
   **опция**, у которой в `defaultOptions` хранится `undefined`. Всё остальное —
   голый `?`.
 - **Ось «`@default`» (JSDoc, принцип P2).** `@default <X>` пишем **только когда `X`
-  реально ХРАНИТСЯ** как дефолт (`defaultOptions` для опции; seed-объект для
+  реально ХРАНИТСЯ** как дефолт (`defaultOptions` для опции; дефолтный объект для
   опции-объекта). Дефолт «в точке использования» (`switch (x) {default}`,
   `const { x = 'after' } = …`, `x ?? …`) **не хранится** → `@default` **не ставим**,
   поведение описываем в **текстовом описании** типа/поля.
@@ -17,8 +17,8 @@
 
 | Категория | Что это | Тип | `@default` |
 |---|---|---|---|
-| **A** — скаляр/коллекция-опция | ключ в `defaultOptions` | конкр. seed → `T`; seed `undefined` → `T \| undefined`; семантич. `null` → `T \| null` | `= хранимый seed` |
-| **A-obj** — опция-объект | ключ в `defaultOptions`, значение — конфиг (merge) | `T` (без `\| undefined`) | `= хранимый seed-объект` |
+| **A** — скаляр/коллекция-опция | ключ в `defaultOptions` | конкретный дефолт → `T`; дефолт `undefined` → `T \| undefined`; семантич. `null` → `T \| null` | `= хранимый дефолт` |
+| **A-obj** — опция-объект | ключ в `defaultOptions`, значение — конфиг (merge) | `T` (без `\| undefined`) | `= хранимый дефолтный объект` |
 | **B** — свойство объекта | поле объекта-данных (`Message`) **или** под-свойство config-item (`TextEditorButton`) — **не** опция | `T` (без `\| undefined`) | **нет** (поведение → описание) |
 
 Сквозное: в `defaultOptions` «нет значения» = `undefined` (`null` — только при
@@ -74,7 +74,7 @@
    опускают, `drop_down_button.dropDownOptions` имеет `@default {}` — один паттерн
    оформлен по-разному.
 
-**Сколько этого (измерено детектором §6):** hard-нарушений **630** (R1+R2+R4+R6),
+**Сколько этого (измерено линтером §6):** жёстких нарушений **630** (R1+R2+R4+R6),
 плюс review R3 (1) и R5 (85). Разбивка — §6.
 
 **Прямое следствие для потребителя** (Angular, `strictTemplates`): форма типа в
@@ -170,7 +170,7 @@ undefined-research.component.ts:38:28 - error TS2322:
    `type` уводит в `default` (текст). Поле объекта при этом **не появляется** со
    значением `undefined`; его просто нет, и `'text'` нигде не **хранится**.
 
-6. **Опция-объект мёржится, а не заменяется.** Значение хранится как частичный
+6. **Опция-объект объединяется (merge), а не заменяется.** Значение хранится как частичный
    конфиг и сливается с дефолтами под-свойств (`_bindInnerWidgetOptions`,
    `_options.cache(...)`). В `defaultOptions` всегда лежит объект (минимум `{}`),
    `undefined` там не бывает. Seed-ы:
@@ -178,7 +178,7 @@ undefined-research.component.ts:38:28 - error TS2322:
    `drop_down_button.ts:120` — `dropDownOptions: {}`;
    `chat.ts:118` — `sendButtonOptions: { icon: 'arrowright', action: 'send', onClick: undefined }`.
 
-7. **Под-свойства config-item — point-of-use, не хранятся.** `TextEditorButton.location`
+7. **Под-свойства config-item вычисляются в точке использования и не хранятся.** `TextEditorButton.location`
    применяется как `const { location = 'after' } = buttonInfo`
    ([texteditor_button_collection/index.ts:167](../packages/devextreme/js/__internal/ui/text_box/texteditor_button_collection/index.ts)).
    Объект кнопки `'after'` не получает; `name` вообще обязателен (рантайм кидает
@@ -194,19 +194,19 @@ undefined-research.component.ts:38:28 - error TS2322:
 
 **Ось `| undefined`** — отвечает на «**может ли значение поля быть `undefined`**»:
 
-> `| undefined` ⟺ поле — **опция**, чей seed в `defaultOptions` равен `undefined`.
+> `| undefined` ⟺ поле — **опция**, чей дефолт в `defaultOptions` равен `undefined`.
 >
-> - опция со seed `undefined` (`accessKey`, `buttons`, коллбэки) → `T | undefined`;
-> - опция со seed конкретного значения (`activeStateEnabled: false`) → `T`;
-> - опция-объект A-obj (seed `{}`/объект) → `T`;
+> - опция с дефолтом `undefined` (`accessKey`, `buttons`, коллбэки) → `T | undefined`;
+> - опция с конкретным дефолтом (`activeStateEnabled: false`) → `T`;
+> - опция-объект A-obj (дефолт `{}`/объект) → `T`;
 > - **свойство объекта B** (поле данных или под-свойство config-item) → `T`
->   (его не seed-ят; `undefined` — не нужное входное значение, `?` уже покрывает «опустить»);
+>   (его не задают в `defaultOptions`; `undefined` — не нужное входное значение, `?` уже покрывает «опустить»);
 > - рантайм делает смысловой `=== null` → `T | null` (отдельно от undefined).
 
 **Ось `@default` (P2)** — отвечает на «**какое значение реально хранится по умолчанию**»:
 
 > `@default <X>` ⟺ `X` физически лежит в storage (`defaultOptions` для опции;
-> seed-объект для A-obj). Дефолт «в точке использования» (`switch default`,
+> дефолтный объект для A-obj). Дефолт «в точке использования» (`switch default`,
 > деструктуризация, `??`) **не хранится** → `@default` **не ставим**; поведение
 > при отсутствии описываем в **текстовом описании** поля.
 
@@ -228,71 +228,77 @@ undefined-research.component.ts:38:28 - error TS2322:
 > **Важная поправка** (была ошибка в раннем черновике): под-свойства config-item
 > (`TextEditorButton.location/name/options`) — это **категория B**, а не A. По обеим
 > осям они ведут себя как поля данных: голый `?`, без `| undefined`, без `@default`
-> (point-of-use дефолт → в описание). Их не seed-ят, и `undefined` им передавать не
+> (дефолт в точке использования → в описание). Их не задают в `defaultOptions`, и `undefined` им передавать не
 > нужно — `name`/`options`/`location` ты **задаёшь или опускаешь**.
 
 ### 4.3. Категория A — скаляр/коллекция-опция
 
-| seed в `defaultOptions` | тип | `@default` |
+| дефолт в `defaultOptions` | тип | `@default` |
 |---|---|---|
 | конкретное значение (`false` / `true` / число / строка / `[]`) | `foo?: T` | `@default <value>` |
 | `undefined` («не задано») | `foo?: T \| undefined` | `@default undefined` |
 | `null` со смысловым `=== null` | `foo?: T \| null` | `@default null` |
 
-**Почему seed `undefined` ⇒ `| undefined`:** для опции `undefined` — реальное
+**Почему дефолт `undefined` ⇒ `| undefined`:** для опции `undefined` — реальное
 хранимое значение домена; плюс генератор обёртки теряет `?`, и без `| undefined`
 в обёртке нельзя выразить «не задано» → strictTemplates ломает легальные
 `[input]="undefined"`, `[input]="obs$ | async"` (async-pipe до первого значения
 `Observable` отдаёт `null`/`undefined`), `[input]="signal()"` (доказано в §2).
 
-Коллбэки/события — частный случай seed `undefined`: `onFoo?: ((e) => void) | undefined`,
+Коллбэки/события — частный случай дефолт `undefined`: `onFoo?: ((e) => void) | undefined`,
 `@default undefined`. **Никогда `| null`.**
 
 ### 4.4. Категория A-obj — опция-объект
 
-Значение — частичный конфиг, который рантайм **мёржит** с дефолтами под-свойств
+Значение — частичный конфиг, который рантайм **объединяет (merge)** с дефолтами под-свойств
 (`dropDownOptions?: PopupProperties`, `sendButtonOptions?: SendButtonProperties`,
 `editing?: EditingBase<…>`).
 
-**Что считается опцией-объектом** (по форме типа, как видит детектор §6): inline
+**Что считается опцией-объектом** (по форме типа, как видит линтер §6): inline
 `{ … }`; ссылка на `*Properties`/`*Options`/`*Base`; `Record<…>`; утилита-обёртка
 `Omit`/`Pick`/`Partial`/`Required`/`Readonly` над таким типом (напр.
 `Omit<FileUploaderProperties, 'value'>` — это `fileUploaderOptions`/`speechToTextOptions`).
 Union с `| null`/`| undefined` — тоже (смотрим на члены без `null`/`undefined`).
 
-**Объектные опции — два вида** (различаются по seed; lint их **не** различает — seed в рантайме):
+**Объектные опции — два вида** (различаются по дефолту; lint их **не** различает — дефолт в рантайме):
 
-| Вид | Примеры | seed | тип | `@default` |
+| Вид | Примеры | дефолт | тип | `@default` |
 |---|---|---|---|---|
-| «всегда-вкл» конфиг (merge + вложенные пути `option('editing.mode')`) | `editing`, `dropDownOptions`, `sendButtonOptions` | объект (под-дефолты / `{}`) | `foo?: NestedProperties` | объект-seed |
+| «всегда-вкл» конфиг (merge + вложенные пути `option('editing.mode')`) | `editing`, `dropDownOptions`, `sendButtonOptions` | объект (под-дефолты / `{}`) | `foo?: NestedProperties` | дефолтный объект |
 | «опц. фича, выключена» | `fileUploaderOptions`, `speechToTextOptions` | `undefined` | `foo?: NestedProperties \| undefined` | `undefined` |
 
 «Всегда-вкл» **не может быть `undefined`**: рантайм адресует под-опции по пути
 (`option('editing.mode')`, [m_editing.ts:209](../packages/devextreme/js/__internal/grids/grid_core/editing/m_editing.ts))
-и мёржит частичные апдейты — нужен базовый объект. «Опц. фича» по умолчанию не
+и объединяет частичные обновления — нужен базовый объект. «Опц. фича» по умолчанию не
 сконфигурирована → `undefined`. (Это правит §3.6: «всегда объект» верно только для merge-вида.)
+
+> **«Опц. фича, выключена» не рекомендуется для нового дизайна.** Опция несёт **двойную
+> ответственность** — конфиг фичи и флаг её включения (`undefined` = выключена). Лучше
+> разнести на две опции: `speechToTextEnabled: boolean` (флаг) + `speechToTextOptions:
+> NestedProperties` (конфиг, всегда объект, без `| undefined`). Существующий
+> `speechToTextOptions?: … | undefined` не трогаем (BC).
 
 Таблица ниже — про **«всегда-вкл»** вид:
 
 | Что | Как |
 |---|---|
 | **тип** | `foo?: NestedProperties` — без `\| undefined`, без `\| null` |
-| **`@default`** | **зеркалит seed-объект из `defaultOptions`** (см. ниже) |
+| **`@default`** | **зеркалит дефолтный объект из `defaultOptions`** (см. ниже) |
 | **дефолты под-свойств** | на **членах** `NestedProperties`, каждый со своим `@default` |
 
-**`@default` = хранимый seed (P2).** Никаких «`{}` или дельта» — просто отражаем то,
+**`@default` = хранимый дефолт (P2).** Никаких «`{}` или дельта» — просто отражаем то,
 что лежит в `defaultOptions`:
 
-| Поле | seed в рантайме | `@default` |
+| Поле | дефолт в рантайме | `@default` |
 |---|---|---|
 | `drop_down_button.dropDownOptions` | `{}` | `@default {}` |
 | `autocomplete.dropDownOptions` | `{ showTitle: false }` | `@default { showTitle: false }` |
 | `chat.sendButtonOptions` | `{ icon: 'arrowright', action: 'send', onClick: undefined }` | `@default { icon: 'arrowright', action: 'send' }` |
-| `grids.editing` | seed-объект | `@default { …seed }` (или `{}`, если seed пуст) |
+| `grids.editing` | дефолтный объект | `@default { …дефолт }` (или `{}`, если дефолт пуст) |
 
-(Так `@default {}` остаётся честным только там, где seed реально `{}`. Для
-`sendButtonOptions` пустой `{}` **врал бы** — реальный seed не пуст; зеркалим его.
-Дедупликация seed-ов, дублирующих под-дефолты, — отдельный код-клинап, §8.)
+(Так `@default {}` остаётся честным только там, где дефолт реально `{}`. Для
+`sendButtonOptions` пустой `{}` был бы неверен — реальный дефолт не пуст; зеркалим его.
+Дедупликация дефолтов, дублирующих под-дефолты, — отдельная чистка кода, §8.)
 
 ### 4.5. Категория B — свойство объекта (данные и config-item)
 
@@ -303,14 +309,17 @@ Union с `| null`/`| undefined` — тоже (смотрим на члены б�
 |---|---|---|
 | всегда | `foo?: T` (без `\| undefined`) | **нет** — поведение при отсутствии в **описании** |
 
-**Почему голый `?` без `| undefined`:** поле не seed-ят, `undefined` ему передавать не
-нужно (задаёшь значение или опускаешь — `?` это и значит); под
-`exactOptionalPropertyTypes: true` `foo?: T` корректно запрещает мусорное `foo: undefined`.
+**Почему голый `?` без `| undefined`:** поле не задают в `defaultOptions`, и передавать ему
+`undefined` не нужно — значение либо задают, либо опускают (это и значит `?`). Под
+`exactOptionalPropertyTypes: true` тип `foo?: T` разрешает поле **опустить**, но не разрешает
+присвоить ему `undefined` напрямую (`{ foo: undefined }` — ошибка компиляции).
 Если у потребителя `undefined` пришёл из формы/async — он опускает ключ
 (`...(x !== undefined && { foo: x })`) или подставляет своё (`foo: x ?? fallback`).
 
-**Почему без `@default` (P2):** у этих полей дефолт — point-of-use fallback (§3.5, §3.7),
-значение нигде не хранится. Поведение пишем в описание:
+**Почему без `@default` (P2):** у этих полей дефолт — запасное значение в точке использования
+(§3.5, §3.7), оно нигде не хранится. Поэтому через `.option()` это значение не вернётся (в
+хранилище его нет) → указывать его в `@default` нельзя: тег утверждал бы то, чего в рантайме
+нет. Поведение при отсутствии описываем текстом в описании типа (его пишет технический писатель):
 - `Message.type` → описание: *«If not specified, the message is rendered as a text message.»*
 - `TextEditorButton.location` → описание: *«If not specified, the button is placed after the input field.»*
   (соответствует [текущей API-доке](https://js.devexpress.com/jQuery/Documentation/ApiReference/UI_Components/dxAutocomplete/Configuration/buttons/#location)).
@@ -327,10 +336,10 @@ Union с `| null`/`| undefined` — тоже (смотрим на члены б�
 
 | тип | допустимый `@default` |
 |---|---|
-| `T` (опция, конкр. seed) | значение seed |
-| `T \| undefined` (опция, seed undefined) | `undefined` |
+| `T` (опция, конкретный дефолт) | значение дефолта |
+| `T \| undefined` (опция, дефолт undefined) | `undefined` |
 | `T \| null` | `null` |
-| `NestedProperties` (A-obj) | seed-объект |
+| `NestedProperties` (A-obj) | дефолтный объект |
 | `T` (категория B) | **тега нет** (поведение → описание) |
 
 ### 4.8. Новые vs существующие поля — политика BC
@@ -355,7 +364,7 @@ breaking changes**.
 > оставляем как есть.
 
 **Пример — `dxDropDownButtonOptions.selectedItemKey`** (категория A): тип уже
-рантайма, поэтому рантайм вынужден прятать seed под `@ts-expect-error`.
+рантайма, поэтому рантайм вынужден прятать дефолт под `@ts-expect-error`.
 
 ```ts
 // .d.ts (было): тип не допускает null, который кладёт рантайм
@@ -384,14 +393,14 @@ selectedItemKey?: string | number | null;   // @default null  (рантайм Н
 
 ```ts
 // ── A: скаляр/коллекция-опция ───────────────────────────────────────────────
-activeStateEnabled?: boolean;              // @default false       (seed false)
-accessKey?: string | undefined;            // @default undefined   (seed undefined)
+activeStateEnabled?: boolean;              // @default false       (defaultOptions: false)
+accessKey?: string | undefined;            // @default undefined   (дефолт undefined)
 buttons?: Array<DropDownPredefinedButton | TextEditorButton> | undefined;
-                                           // @default undefined   (seed void 0) ← фикс: было без | undefined
+                                           // @default undefined   (defaultOptions: void 0) ← фикс: было без | undefined
 onMessageEntered?: ((e: ...) => void) | undefined; // @default undefined
 value?: boolean | null;                    // @default false; null = indeterminate (check_box.tsx: checked === null)
 
-// ── A-obj: опция-объект (@default = хранимый seed) ──────────────────────────
+// ── A-obj: опция-объект (@default = хранимый дефолт) ──────────────────────────
 dropDownOptions?: PopupProperties;         // @default {}                                  (drop_down_button)
 dropDownOptions?: PopupProperties;         // @default { showTitle: false }                (autocomplete)
 sendButtonOptions?: SendButtonProperties;  // @default { icon: 'arrowright', action: 'send' } (chat)
@@ -420,7 +429,7 @@ options?: ButtonProperties;                // нет @default
 // под существующий рантайм-null, сохраняя уже допустимый `| undefined`:
 /** @default null */
 focusedRowKey?: TKey | null | undefined;   // defaultOptions: { focusedRowKey: null } (уже так)
-// `| null` — под рантайм-seed; `| undefined` сохраняем, чтобы не сломать [focusedRowKey]="undefined".
+// `| null` — под рантайм-дефолт; `| undefined` сохраняем, чтобы не сломать [focusedRowKey]="undefined".
 ```
 
 ---
@@ -457,10 +466,10 @@ review (шумит на enum-подобных константах), потом�
 **Детект опции-объекта (R4/R6)** смотрит **сквозь** union (`Props | undefined`) и
 утилиты (`Omit`/`Pick`/`Partial`/`Required`/`Readonly`/`Record`). R6 объектные опции
 **не исключает**: для них `@default undefined` без `| undefined` — тоже рассогласование
-(чинится либо `| undefined` для «опц.фичи», либо `@default {}` для «всегда-вкл» — по seed, §4.4).
+(чинится либо `| undefined` для «опц.фичи», либо `@default {}` для «всегда-вкл» — по дефолту, §4.4).
 
 **Регресс-гейт (ратчет).** Правила на `warn` сами CI не валят, поэтому новый warning ловит
-ратчет — **тонкий счётчик поверх вывода правил** (НЕ второй детектор: логика только в
+ратчет — **тонкий счётчик поверх вывода правил** (не дублирует детекцию: логика только в
 правилах):
 - [build/linters/default-convention-ratchet.js](../packages/devextreme/build/linters/default-convention-ratchet.js)
   считает warning'и наших правил и сравнивает с baseline
@@ -469,12 +478,12 @@ review (шумит на enum-подобных константах), потом�
 - `pnpm run lint-dts-convention` — CI-шаг в `lint.yml` (после «Lint .d.ts»);
 - `pnpm run lint-dts-convention:update` — пересчитать baseline (когда нарушения починены, тем же PR).
 
-**glob-override.** Чистые области флипаем в `error` через отдельный блок в `eslint.config.mjs`
+**glob-override.** Чистые области переводим в `error` через отдельный блок в `eslint.config.mjs`
 (`files: [...]` → `error`): новое нарушение там — хард-фейл сразу, не дожидаясь ратчета. По
 мере чистки наполняем glob; в конце всё `error`, ратчет выкидываем.
 
 **Граница инструмента → второй слой защиты.** Lint видит слой «тип ↔ `@default`», но
-**не рантайм** (`defaultOptions`, `=== null`, seed-значения) и **не может решить, что
+**не рантайм** (`defaultOptions`, `=== null`, дефолтные значения) и **не может решить, что
 правильнее для нового поля — `undefined` или `null`**: это смысловой выбор по рантайму
 (§4.8). Линтер ловит рассогласование, но **не направление** фикса. Поэтому энфорсмент
 **двухслойный**:
@@ -502,7 +511,7 @@ review (шумит на enum-подобных константах), потом�
 не ловит). Механический энфорсмент (линтер + ратчет) уже приземлён.
 
 **Шаг 1. Пилот — `chat.d.ts`.** Категория B: убрать `| undefined`/`@default` у полей
-`Message`. A-obj: проставить `@default = seed` (`sendButtonOptions`, `editing`).
+`Message`. A-obj: проставить `@default = дефолт` (`sendButtonOptions`, `editing`).
 Прогнать `regenerate-all` → `update-ts-reexports` → `lint-dts`. Песочница (§2) — приёмочный
 тест. Один PR, один ревьюер: эталон стиля.
 
@@ -510,7 +519,7 @@ review (шумит на enum-подобных константах), потом�
 `selectedRowKey`, `editCardKey`, `selectedItemKey` — рантайм держит `null`, тип его не
 допускает. Чиним **расширением типа под рантайм** (добавить `| null`), `@default null`
 и рантайм **оставляем** (§4.8). Побочно снимаются `// @ts-expect-error public API needs
-to be fixed` над такими seed-ами. Рантайм не трогаем → регресс-риска нет.
+to be fixed` над такими дефолтами. Рантайм не трогаем → регресс-риска нет.
 
 **Шаг 3. Массовая правка руками по командам** под надзором ратчета + `error`-glob (§6). Для
 каждого optional-поля: найти в `_getDefaultOptions`, определить категорию (§4.2), свести
@@ -534,10 +543,10 @@ to be fixed` над такими seed-ами. Рантайм не трогаем
   (`@default null`) и встречается в туториалах/демо → снятие `| null` = **breaking
   change**. По §4.8 (существующее, без BC) **оставляем как есть**. Это канонический
   «терпимый легаси-`null`»: тип/`@default`/рантайм между собой согласованы (линтер
-  молчит), поэтому в worklist §6 его и нет. В новом коде так не пишем.
+  молчит), поэтому в списке нарушений §6 его и нет. В новом коде так не пишем.
 - **template/icon-поля** (`messageTemplate`, `emptyViewTemplate`, `expandIcon`,
   `collapseIcon`): `null` декоративный (нет `=== null`) → по конвенции `undefined`, низкий приоритет.
-- **Дедупликация seed-ов опций-объектов** (`chat.sendButtonOptions` дублирует под-дефолты):
+- **Дедупликация дефолтов опций-объектов** (`chat.sendButtonOptions` дублирует под-дефолты):
   код-клинап.
 - **Coordination с тех.райтерами:** P2 переносит «поведение при отсутствии» в текстовые
   описания. До раската — договориться о шаблоне формулировки («If not specified, …») и
@@ -556,10 +565,10 @@ to be fixed` над такими seed-ами. Рантайм не трогаем
   `@default {}` у `sendButtonOptions`.
 - **P2 — «только хранимое» (ПРИНЯТО).** `@default` только когда значение лежит в storage.
   Point-of-use дефолт → тега нет, поведение в описание. → у `Message.type` и `location`
-  тега **нет**; `sendButtonOptions` → `@default { icon, action }` (реальный seed).
+  тега **нет**; `sendButtonOptions` → `@default { icon, action }` (реальный дефолт).
 
 **Почему P2:** честнее (тег не утверждает того, чего нет в рантайме); механически
-проверяем детектором («`@default` == то, что в `defaultOptions`/объекте»); убирает
+проверяем линтером («`@default` == то, что в `defaultOptions`/объекте»); убирает
 субъективное «является ли это эффективным дефолтом». Минус — `@default` в API-доке
 больше не показывает поведение при отсутствии; закрывается описанием типа (см. §8,
 открытый пункт с тех.райтерами).
@@ -568,7 +577,7 @@ to be fixed` над такими seed-ами. Рантайм не трогаем
 
 | Кейс | Рантайм | Решение (P2) |
 |---|---|---|
-| `chat.sendButtonOptions` | seed `{ icon:'arrowright', action:'send', onClick:undefined }` ([chat.ts:118](../packages/devextreme/js/__internal/ui/chat/chat.ts)) | `@default { icon: 'arrowright', action: 'send' }` (зеркало seed); НЕ `{}` |
+| `chat.sendButtonOptions` | дефолт `{ icon:'arrowright', action:'send', onClick:undefined }` ([chat.ts:118](../packages/devextreme/js/__internal/ui/chat/chat.ts)) | `@default { icon: 'arrowright', action: 'send' }` (зеркало дефолта); НЕ `{}` |
 | `TextEditorButton.location` | `const { location = 'after' } = buttonInfo` ([index.ts:167](../packages/devextreme/js/__internal/ui/text_box/texteditor_button_collection/index.ts)) — не хранится | `@default` убрать; поведение в описание |
 | `MessageBase.type` | `switch (type) { … default: text }` ([messagebubble.ts:120](../packages/devextreme/js/__internal/ui/chat/messagebubble.ts)) — не хранится | `@default` не ставить; поведение в описание |
 
