@@ -40,8 +40,8 @@ only when the runtime performs a meaningful `=== null` check.
   undefined`, never `| null`.
 - **A-obj — object-valued option** (the value is a config the runtime merges, e.g.
   `editing`, `paging`, `tooltip`, `dropDownOptions`): type is `T` without `| undefined`. A
-  `@default` is needed only when `getDefaultOptions` stores a value that DIFFERS from the
-  referenced type's own defaults — i.e. a runtime override worth documenting. The referenced
+  `@default` (**R4**) is needed only when `getDefaultOptions` stores a value that DIFFERS from
+  the referenced type's own defaults — i.e. a runtime override worth documenting. The referenced
   type (`PopupProperties`) already documents its sub-properties' defaults, so an empty seed
   (`{}`, no override) needs no `@default`. An INLINE object whose sub-properties carry their
   own `@default` needs no container `@default`. (Not lint-enforced — a review judgment.) Avoid the "optional feature, off by default"
@@ -91,10 +91,10 @@ location?: TextEditorButtonLocation;           // incorrect: @default whose valu
 
 ## Review checklist
 
-- `@default null` present -> the type must include `null`.
-- `@default undefined` present -> the type must include `| undefined`.
-- A concrete `@default` (not `null`/`undefined`) -> the type must NOT include `| undefined`.
-- An object-valued option -> add a `@default` only when `getDefaultOptions` stores a value
+- **R1**: `@default null` present -> the type must include `null`.
+- **R6**: `@default undefined` present -> the type must include `| undefined`.
+- **R2**: a concrete `@default` (not `null`/`undefined`) -> the type must NOT include `| undefined`.
+- **R4**: an object-valued option -> add a `@default` only when `getDefaultOptions` stores a value
   that DIFFERS from the referenced type's own defaults (a runtime override); an empty seed
   (`{}`) or an INLINE object whose sub-properties carry their own `@default` needs none. (Not
   lint-enforced — a review check.)
