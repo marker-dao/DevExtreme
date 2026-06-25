@@ -238,8 +238,8 @@ selectedItemKey?: string | number | null;   // стало: тип расшири
 | тип | допустимый `@default` |
 |---|---|
 | `T` (опция, конкретный дефолт) | значение дефолта |
-| `T | undefined` (опция, дефолт undefined) | `undefined` |
-| `T | null` | `null` |
+| `T \| undefined` (опция, дефолт undefined) | `undefined` |
+| `T \| null` | `null` |
 | `NestedProperties` (A-obj) | дефолтный объект |
 | `T` (категория B) | **тега нет** (поведение → описание) |
 
