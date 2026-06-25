@@ -380,14 +380,12 @@ export default [
             '@typescript-eslint/consistent-type-definitions': 'off',
             '@typescript-eslint/no-empty-interface': 'off',
             'devextreme-custom/jsdoc-default-matches-type': 'warn',
-            'devextreme-custom/literal-union-needs-default-doc': 'warn',
         },
     },
     {
         files: ['js/_convention-clean-areas/**/*.d.ts'],
         rules: {
             'devextreme-custom/jsdoc-default-matches-type': 'error',
-            'devextreme-custom/literal-union-needs-default-doc': 'error',
         },
     },
     // Rules for build folder

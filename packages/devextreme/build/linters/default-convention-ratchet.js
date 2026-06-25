@@ -18,7 +18,6 @@ const { ESLint } = require('eslint');
 
 const RULES = [
     'devextreme-custom/jsdoc-default-matches-type',
-    'devextreme-custom/literal-union-needs-default-doc',
 ];
 const TARGET = ['js/**/*.d.ts'];
 const BASELINE_PATH = path.join(__dirname, 'default-convention.baseline.json');

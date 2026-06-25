@@ -1,30 +1,51 @@
 /**
- * Enforces the optional-field typing convention for public `.d.ts` files.
- * The rule checks that a property's JSDoc `@default` tag agrees with
- * the shape of its TypeScript type:
+ * Enforces the optional-field typing convention for public `.d.ts` files: a
+ * property's JSDoc `@default` tag must agree with the shape of its TypeScript
+ * type. Four checks (R3 and R5 are intentionally not enforced by lint):
  *
  *   R1 — `@default null` requires `null` in the type.
- *   R2 — a concrete `@default` (not null/undefined) forbids `| undefined`
- *        in the type (an option with a real default never holds `undefined`).
+ *   R2 — a concrete `@default` (not null/undefined) forbids `| undefined` in the
+ *        type (an option with a real default never holds `undefined`).
+ *   R4 — an object-valued option declared inside a `*Options` interface must
+ *        carry a `@default` (mirroring the value stored in `defaultOptions`).
  *   R6 — `@default undefined` requires `| undefined` in the type (the Angular
  *        wrapper generator drops `?`, so the unset state must be explicit).
- *   R4 — an object-valued option declared inside a `*Options` interface must
- *        carry a `@default` (mirroring its `defaultOptions` seed).
  *
- * The rule is purely syntactic: it inspects the TSESTree type node and the
- * leading JSDoc comment, so it needs no type information and runs per file.
- *
- * Out of scope of this rule: R3 (concrete default + `null` — the check_box
- * tri-state exception, left as-is) and R5 (literal-union without `@default`),
- * which lives in the separate type-aware rule `literal-union-needs-default-doc`.
+ * Purely syntactic: it inspects the TSESTree type node and the leading JSDoc
+ * comment, so it needs no type information and runs per file.
  */
-
-const { readDefaultToken, classifyDefault } = require('./annotation_core');
 
 const OPTIONS_TYPE_NAME = /(Properties|Options|Base)$/;
 // Utility types whose object-ness follows their first type argument
 // (`Omit<XProperties, …>`, `Partial<{ … }>`, …).
 const PASSTHROUGH_UTILITY = /^(Omit|Pick|Partial|Required|Readonly)$/;
+
+/**
+ * Reads the `@default` value from the property's nearest leading JSDoc block.
+ * Returns the raw token (e.g. `null`, `undefined`, `false`, `{}`), or `null`
+ * when that block has no `@default` tag.
+ */
+function readDefaultToken(node, sourceCode) {
+    const comments = sourceCode.getCommentsBefore(node);
+    for(let i = comments.length - 1; i >= 0; i -= 1) {
+        if(comments[i].type === 'Block') {
+            const match = /@default\s+(\S+)/.exec(comments[i].value);
+            return match ? match[1] : null;
+        }
+    }
+    return null;
+}
+
+/** Classifies a `@default` token: `none` (absent), `null`, `undefined`, or `concrete`. */
+function classifyDefault(token) {
+    if(token === null) {
+        return 'none';
+    }
+    if(token === 'null' || token === 'undefined') {
+        return token;
+    }
+    return 'concrete';
+}
 
 /** Returns the rightmost identifier of a type reference name. */
 function getTypeReferenceName(typeName) {

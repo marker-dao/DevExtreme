@@ -14,8 +14,8 @@ below. The shape of an optional field is decided by two independent axes.
 - **`@default` axis (JSDoc).** Write `@default <X>` only when `X` is actually STORED as the
   default — in `defaultOptions` for an option, or as the seed object for an object-valued
   option. A point-of-use default (a `switch` default, a destructuring default, `??`) is NOT
-  stored: do not write `@default`; describe the on-omission behavior in the type's text
-  description instead.
+  stored: do not write `@default`. (The on-omission behavior is documented by technical
+  writers in a separate documentation repository, not in the `.d.ts`.)
 
 Across the board: in `defaultOptions`, "no value" is `undefined`, not `null`. Use `null`
 only when the runtime performs a meaningful `=== null` check.
@@ -47,8 +47,9 @@ only when the runtime performs a meaningful `=== null` check.
 - **B — object property** (a data-object field such as `Message`, or a config-item
   sub-property such as `TextEditorButton`): bare `foo?: T` without `| undefined`; NO
   `@default`. The default is a point-of-use fallback that is never stored, so reading the
-  option via `.option()` would not return it — describe the on-omission behavior in the
-  type's text description (written by a technical writer).
+  option via `.option()` would not return it. Do not document the behavior in the `.d.ts` —
+  technical writers do that in a separate documentation repository; here you simply omit
+  `@default`.
 
 ## Correct vs incorrect examples
 
@@ -70,12 +71,14 @@ editRowKey?: TKey;                             // incorrect: @default null, but 
 dropDownOptions?: PopupProperties;             // correct
 popup?: PopupProperties;                       // incorrect: object-valued option without @default
 
-// B — a literal-union data field: no @default; behavior goes in the description
+// B — a data-object / config-item field: no @default (value isn't stored), no prose in the .d.ts
 /**
- * The message type. If not specified, the message is rendered as a text message.
+ * @docid
+ * @public
  */
 type?: MessageType;                            // correct
-deviceType?: 'phone' | 'tablet' | 'desktop';   // incorrect: literal union with no @default and no described behavior
+/** @default "after" */
+location?: TextEditorButtonLocation;           // incorrect: @default whose value isn't stored in defaultOptions
 ```
 
 ## Review checklist
@@ -84,8 +87,9 @@ deviceType?: 'phone' | 'tablet' | 'desktop';   // incorrect: literal union with 
 - `@default undefined` present -> the type must include `| undefined`.
 - A concrete `@default` (not `null`/`undefined`) -> the type must NOT include `| undefined`.
 - An object-valued option -> it must have a `@default` that mirrors its stored default object.
-- A literal-union field with default-on-omission behavior -> no `@default`; the behavior must
-  be documented in the description.
+- A data-object / config-item field (not a stored option) -> no `@default`; remove any
+  `@default` whose value isn't stored in `defaultOptions` (a point-of-use default in a
+  `switch`/`case`). Behavior is documented by tech writers elsewhere, not in the `.d.ts`.
 - A new field meaning "no value" -> default to `undefined`, not `null`; flag any `null` that
   has no `=== null` justification.
 - An existing field -> never propose migrating a runtime `null` to `undefined` or removing
