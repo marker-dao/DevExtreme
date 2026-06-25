@@ -13,22 +13,18 @@ const ruleTester = new RuleTester({
 
 ruleTester.run('jsdoc-default-matches-type', rule, {
     valid: [
-        // R1: @default null with null in the type.
         {
             code: 'interface dxFooOptions { /** @default null */ foo?: string | null; }',
             filename: 'foo.d.ts',
         },
-        // R2: concrete default without | undefined.
         {
             code: 'interface dxFooOptions { /** @default false */ foo?: boolean; }',
             filename: 'foo.d.ts',
         },
-        // R3: @default undefined with | undefined.
         {
             code: 'interface dxFooOptions { /** @default undefined */ foo?: string | undefined; }',
             filename: 'foo.d.ts',
         },
-        // No @default → nothing to check (object-option @default is R4 — review, not lint).
         {
             code: 'interface dxFooOptions { /** @docid */ bar?: PopupProperties; }',
             filename: 'foo.d.ts',
@@ -37,7 +33,6 @@ ruleTester.run('jsdoc-default-matches-type', rule, {
             code: 'interface dxFooOptions { /** @docid */ foo?: string; }',
             filename: 'foo.d.ts',
         },
-        // R3 boundary: object-typed option with | undefined + @default undefined is consistent.
         {
             code: 'interface dxFooOptions { /** @default undefined */ bar?: PopupProperties | undefined; }',
             filename: 'foo.d.ts',
@@ -45,25 +40,21 @@ ruleTester.run('jsdoc-default-matches-type', rule, {
     ],
 
     invalid: [
-        // R1: @default null but no null in the type.
         {
             code: 'interface dxFooOptions { /** @default null */ foo?: string; }',
             filename: 'foo.d.ts',
             errors: [{ messageId: 'defaultNullNeedsNull' }],
         },
-        // R2: concrete default but | undefined present.
         {
             code: 'interface dxFooOptions { /** @default false */ foo?: boolean | undefined; }',
             filename: 'foo.d.ts',
             errors: [{ messageId: 'concreteDefaultNoUndefined' }],
         },
-        // R3: @default undefined but no | undefined (scalar).
         {
             code: 'interface dxFooOptions { /** @default undefined */ foo?: string; }',
             filename: 'foo.d.ts',
             errors: [{ messageId: 'defaultUndefinedNeedsUndefined' }],
         },
-        // R3 (object-typed): @default undefined but no | undefined.
         {
             code: 'interface dxFooOptions { /** @default undefined */ bar?: { x?: number; }; }',
             filename: 'foo.d.ts',
