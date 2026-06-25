@@ -1,7 +1,7 @@
 # Конвенция типизации optional-полей в публичном API (`?`, `| undefined`, `| null`, `@default`)
 
-> - **Enforced-версия для Copilot-ревью** (на английском, в репозитории) —
->   [.github/instructions/optional-fields-typing.instructions.md](../.github/instructions/optional-fields-typing.instructions.md).
+> - **Enforced-версия для Copilot-ревью** (в репозитории) —
+>   [.github/instructions/optional-fields-typing.instructions.md](https://github.com/DevExpress/DevExtreme/blob/26_1/.github/instructions/optional-fields-typing.instructions.md).
 >   Эта страница и тот файл — синхронные копии правила; правишь правило — меняй оба.
 
 ---
@@ -13,8 +13,7 @@
 - **Ось `| undefined` (тип).** `| undefined` ставим **только** если поле — это
   **опция**, у которой в `defaultOptions` хранится `undefined`. Всё остальное — голый `?`.
 - **Ось `@default` (JSDoc).** `@default <X>` пишем **только когда `X` реально ХРАНИТСЯ**
-  как дефолт (`defaultOptions` для опции; дефолтный объект для опции-объекта). Дефолт
-  «в точке использования» (`switch (x) { default }`, `const { x = 'after' } = …`,
+  как дефолт (`defaultOptions` для опции; дефолтный объект для опции-объекта). **НО!** 			Дефолт «в точке использования» (`switch (x) { default }`, `const { x = 'after' } = …`,
   `x ?? …`) **не хранится** → `@default` **не ставим**, поведение описываем в
   **текстовом описании** типа/поля.
 
@@ -32,9 +31,9 @@
 
 | Категория | Что это | Тип | `@default` |
 |---|---|---|---|
-| **A** — скаляр/коллекция-опция | ключ в `defaultOptions` | конкретный дефолт → `T`; дефолт `undefined` → `T \| undefined`; семантич. `null` → `T \| null` | `= хранимый дефолт` |
-| **A-obj** — опция-объект | ключ в `defaultOptions`, значение — конфиг (merge) | `T` (без `\| undefined`) | `= хранимый дефолтный объект` |
-| **B** — свойство объекта | поле объекта-данных (`Message`) **или** под-свойство config-item (`TextEditorButton`) — **не** опция | `T` (без `\| undefined`) | **нет** (поведение → описание) |
+| **A** — скаляр/коллекция-опция | ключ в `defaultOptions` | конкретный дефолт → `T`; дефолт `undefined` → `T | undefined`; семантич. `null` → `T | null` | `= хранимый дефолт` |
+| **A-obj** — опция-объект | ключ в `defaultOptions`, значение — конфиг | `T` (без `| undefined`) | `= хранимый дефолтный объект` |
+| **B** — свойство объекта | поле объекта-данных (`Message`) **или** под-свойство config-item (`TextEditorButton`) — **не** опция | `T` (без `| undefined`) | **нет** (поведение → описание, если свойство не задано в `defaultOptions`) |
 
 ### Как определить категорию
 
@@ -55,8 +54,8 @@
 | дефолт в `defaultOptions` | тип | `@default` |
 |---|---|---|
 | конкретное значение (`false` / число / строка / `[]`) | `foo?: T` | `@default <value>` |
-| `undefined` («не задано») | `foo?: T \| undefined` | `@default undefined` |
-| `null` со смысловым `=== null` | `foo?: T \| null` | `@default null` |
+| `undefined` («не задано») | `foo?: T | undefined` | `@default undefined` |
+| `null` со смысловым `=== null` | `foo?: T | null` | `@default null` |
 
 Коллбэки/события — частный случай, когда дефолт `undefined`:
 `onFoo?: ((e) => void) | undefined`, `@default undefined`. **Никогда `| null`.**
@@ -79,7 +78,7 @@ filterValues?: Array<any> | undefined;
 /** @default undefined */
 filterValues?: Array<any>;
 ```
-Как не надо сейчас в коде: [filterValues — common/grids.d.ts:607](../packages/devextreme/js/common/grids.d.ts#L607)
+Как не надо сейчас в коде: [filterValues — common/grids.d.ts:607](https://github.com/DevExpress/DevExtreme/blob/26_1/packages/devextreme/js/common/grids.d.ts#L607)
 
 ```ts
 // надо — @default null, и в типе есть null:
@@ -90,7 +89,7 @@ editRowKey?: TKey | null;
 /** @default null */
 editRowKey?: TKey;
 ```
-Как не надо сейчас в коде: [editRowKey — common/grids.d.ts:1255](../packages/devextreme/js/common/grids.d.ts#L1255)
+Как не надо сейчас в коде: [editRowKey — common/grids.d.ts:1255](https://github.com/DevExpress/DevExtreme/blob/26_1/packages/devextreme/js/common/grids.d.ts#L1255)
 
 ## A-obj — опция-объект
 
@@ -100,17 +99,17 @@ editRowKey?: TKey;
 | Вид | Примеры | дефолт | тип | `@default` |
 |---|---|---|---|---|
 | «всегда включено» (merge + пути `option('editing.mode')`) | `editing`, `paging`, `tooltip`, `dropDownOptions`, `sendButtonOptions` | объект / `{}` | `foo?: NestedProperties` | дефолтный объект |
-| «опциональная фича, выключена» | `fileUploaderOptions`, `speechToTextOptions` | `undefined` | `foo?: NestedProperties \| undefined` | `undefined` |
+| «опциональная фича, выключена» | `fileUploaderOptions`, `speechToTextOptions` | `undefined` | `foo?: NestedProperties | undefined` | `undefined` |
 
 **Примеры A-obj-конфигов из кодовой базы** (все «всегда-вкл»: `foo?: NestedProperties` без `| undefined`, `@default` зеркалит объект-дефолт):
 - **Гриды** (под-опции, адресуются по пути `option('paging.pageSize')`): `editing`, `paging`,
   `scrolling`, `selection`, `columnChooser`, `filterRow`, `headerFilter`, `pager`, `searchPanel`,
-  `stateStoring`, `loadPanel` — [common/grids.d.ts:2621](../packages/devextreme/js/common/grids.d.ts#L2621).
-- **Графики (viz):** `tooltip`, `legend`, `argumentAxis`, `valueAxis`, `commonSeriesSettings` —
-  [viz/chart.d.ts:1525](../packages/devextreme/js/viz/chart.d.ts#L1525).
-- **Редакторы:** `dropDownOptions` (`PopupProperties`), `calendarOptions` (`dxCalendarOptions`) —
-  [ui/date_box.d.ts:313](../packages/devextreme/js/ui/date_box.d.ts#L313).
-- **Чат:** `sendButtonOptions`.
+  `stateStoring`, `loadPanel` — [common/grids.d.ts:2621](https://github.com/DevExpress/DevExtreme/blob/26_1/packages/devextreme/js/common/grids.d.ts#L2621).
+- **Viz:** `tooltip`, `legend`, `argumentAxis`, `valueAxis`, `commonSeriesSettings` —
+  [viz/chart.d.ts:1525](https://github.com/DevExpress/DevExtreme/blob/26_1/packages/devextreme/js/viz/chart.d.ts#L1525).
+- **Editors:** `dropDownOptions` (`PopupProperties`), `calendarOptions` (`dxCalendarOptions`) —
+  [ui/date_box.d.ts:313](https://github.com/DevExpress/DevExtreme/blob/26_1/packages/devextreme/js/ui/date_box.d.ts#L313).
+- **Chat:** `sendButtonOptions`.
 
 > **«Опц. фича, выключена» не рекомендуется для нового дизайна.** Здесь на одну опцию
 > навешивается **двойная ответственность** — и конфиг фичи, и флаг её включения
@@ -135,9 +134,9 @@ dropDownOptions?: PopupProperties;
 // не надо — объект-опция без @default:
 popup?: PopupProperties;
 ```
-Надо: [dropDownOptions — ui/drop_down_button.d.ts:167](../packages/devextreme/js/ui/drop_down_button.d.ts#L167).
+Надо: [dropDownOptions — ui/drop_down_button.d.ts:167](https://github.com/DevExpress/DevExtreme/blob/26_1/packages/devextreme/js/ui/drop_down_button.d.ts#L167).
 
-Как не надо сейчас: [popup — common/grids.d.ts:1273](../packages/devextreme/js/common/grids.d.ts#L1273)
+Как не надо сейчас: [popup — common/grids.d.ts:1273](https://github.com/DevExpress/DevExtreme/blob/26_1/packages/devextreme/js/common/grids.d.ts#L1273)
 
 ## B — свойство объекта (данные и config-item)
 
@@ -146,13 +145,11 @@ popup?: PopupProperties;
 
 | правило | тип | `@default` |
 |---|---|---|
-| всегда | `foo?: T` (без `\| undefined`) | **нет** — поведение при отсутствии в **описании** |
+| всегда | `foo?: T` (без `| undefined`) | **нет** — поведение при отсутствии в **описании** |
 
 **Почему голый `?`:** поле не задают в `defaultOptions`, и передавать ему `undefined` не
 нужно — значение либо задают, либо опускают (это и значит `?`). Под
-`exactOptionalPropertyTypes: true` (настройка строгости в tsconfig) тип `foo?: T` разрешает поле **опустить**, но не
-разрешает присвоить ему `undefined` напрямую (`{ foo: undefined }` — ошибка компиляции),
-что и соответствует правилу «задают значение или опускают».
+`exactOptionalPropertyTypes: true` (настройка строгости в tsconfig) тип `foo?: T` разрешает поле **опустить**, но не разрешает присвоить ему `undefined` напрямую (`{ foo: undefined }` — ошибка компиляции), что и соответствует правилу «задают значение или опускают».
 
 **Почему без `@default`:** дефолт здесь — запасное значение в точке использования, оно
 нигде не хранится. Поэтому если прочитать опцию через `.option()`, это значение не
@@ -164,16 +161,24 @@ popup?: PopupProperties;
 
 **Как надо / как не надо:**
 ```ts
-// надо — без @default; поведение при отсутствии описано текстом в JSDoc:
+// надо — без @default; поведение при отсутствии описано текстом в описании типа в репозитории документации:
 /**
- * The message type. If not specified, the message is rendered as a text message.
+ * @docid
+ * @public
  */
 type?: MessageType;
 
-// не надо — литерал-union без @default и без описания поведения:
-deviceType?: 'phone' | 'tablet' | 'desktop';
+// не надо — union c @default со значением, которое не хранится в объекте:
+/**
+ * @public
+ * @docid
+ * @default "after"
+ */
+location?: TextEditorButtonLocation;
 ```
-Надо: [type — ui/chat.d.ts:275](../packages/devextreme/js/ui/chat.d.ts#L275) · Как не надо сейчас: [deviceType — common/core/environment.d.ts:17](../packages/devextreme/js/common/core/environment.d.ts#L17)
+Надо: [type — ui/chat.d.ts:275](https://github.com/DevExpress/DevExtreme/blob/26_1/packages/devextreme/js/ui/chat.d.ts#L275)
+
+Как не надо сейчас: [location — js/common.d.ts:816](https://github.com/DevExpress/DevExtreme/blob/26_1/packages/devextreme/js/common.d.ts#L816)
 
 ---
 
@@ -219,8 +224,8 @@ selectedItemKey?: string | number | null;   // стало: тип расшири
 | тип | допустимый `@default` |
 |---|---|
 | `T` (опция, конкретный дефолт) | значение дефолта |
-| `T \| undefined` (опция, дефолт undefined) | `undefined` |
-| `T \| null` | `null` |
+| `T | undefined` (опция, дефолт undefined) | `undefined` |
+| `T | null` | `null` |
 | `NestedProperties` (A-obj) | дефолтный объект |
 | `T` (категория B) | **тега нет** (поведение → описание) |
 
