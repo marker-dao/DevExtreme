@@ -78,7 +78,7 @@ filterValues?: Array<any> | undefined;
 /** @default undefined */
 filterValues?: Array<any>;
 ```
-**R6** · как не надо сейчас в коде: [filterValues — common/grids.d.ts:607](https://github.com/DevExpress/DevExtreme/blob/26_1/packages/devextreme/js/common/grids.d.ts#L607)
+**R3** · как не надо сейчас в коде: [filterValues — common/grids.d.ts:607](https://github.com/DevExpress/DevExtreme/blob/26_1/packages/devextreme/js/common/grids.d.ts#L607)
 
 ```ts
 // надо — @default null, и в типе есть null:
@@ -93,12 +93,12 @@ editRowKey?: TKey;
 
 ## A-obj — опция-объект
 
-Значение — частичный конфиг, который рантайм **мёржит** с под-дефолтами. Два вида
+Значение — частичный конфиг, который рантайм **объединяет** с дефолтами под-свойств. Два вида
 (различаются по дефолту в `defaultOptions`; lint их не различает):
 
 | Вид | Примеры | дефолт | тип | `@default` |
 |---|---|---|---|---|
-| «всегда включено» (merge + пути `option('editing.mode')`) | `editing`, `paging`, `tooltip`, `dropDownOptions`, `sendButtonOptions` | объект / `{}` | `foo?: NestedProperties` | дефолтный объект |
+| «всегда включено» (объединяется с дефолтами; доступ по пути `option('editing.mode')`) | `editing`, `paging`, `tooltip`, `dropDownOptions`, `sendButtonOptions` | объект / `{}` | `foo?: NestedProperties` | дефолтный объект |
 | «опциональная фича, выключена» | `fileUploaderOptions`, `speechToTextOptions` | `undefined` | `foo?: NestedProperties | undefined` | `undefined` |
 
 **Примеры A-obj-конфигов из кодовой базы** (все «всегда-вкл»: `foo?: NestedProperties` без `| undefined`, `@default` зеркалит объект-дефолт):
@@ -120,11 +120,11 @@ editRowKey?: TKey;
 **`@default` у объект-опции нужен только при переопределении дефолтов типа.** Тип-ссылка
 (`PopupProperties`) уже документирует дефолты своих под-свойств. `@default` на самой опции
 имеет смысл лишь когда `_getDefaultOptions` задаёт значения, **отличные от дефолтов типа** —
-чтобы задокументировать это переопределение. Нет переопределения (seed `{}`) → `@default`
+чтобы задокументировать это переопределение. Нет переопределения (в `_getDefaultOptions` лежит `{}`) → `@default`
 не нужен. У **инлайн-объекта** под-свойства несут свои `@default` сами — контейнеру `@default`
 не нужен. Это **R4** — линтер объект-опции **не проверяет**, держит ревью (Copilot).
 
-| Поле | seed в `_getDefaultOptions` | отличается от дефолтов типа? | `@default` |
+| Поле | значение в `_getDefaultOptions` | отличается от дефолтов типа? | `@default` |
 |---|---|---|---|
 | `drop_down_button.dropDownOptions` | `{}` | нет | — не нужен |
 | `autocomplete.dropDownOptions` | `{ showTitle: false }` | да (переопределяет `showTitle`) | `@default { showTitle: false }` |
@@ -135,7 +135,7 @@ editRowKey?: TKey;
 /** @default { showTitle: false } */
 dropDownOptions?: PopupProperties;
 
-// нет переопределения (seed {}) → @default не нужен:
+// нет переопределения (в _getDefaultOptions лежит {}) → @default не нужен:
 dropDownOptions?: PopupProperties;
 
 // инлайн-объект → @default на под-свойствах, не на контейнере:
@@ -247,21 +247,19 @@ selectedItemKey?: string | number | null;   // стало: тип расшири
 
 ## Как это контролируется — два слоя
 
-**Каталог правил `@default` ↔ тип (определение; ниже по тексту на коды есть ссылки):**
+**Каталог правил (определение; ниже по тексту на коды есть ссылки):**
 
-| Правило | Проверка | Кто держит |
+| Правило | Проверка | Где проверяется |
 |---|---|---|
 | **R1** | `@default null` ⇒ в типе есть `null` | линтер |
 | **R2** | конкретный `@default` (не null/undefined) ⇒ в типе нет `\| undefined` | линтер |
-| **R3** | конкретный `@default` + `null` (tri-state, напр. `check_box.value`) | не проверяется — легитимное исключение |
+| **R3** | `@default undefined` ⇒ в типе есть `\| undefined` | линтер |
 | **R4** | объект-опция: `@default` нужен только при переопределении дефолтов типа | ревью (Copilot) |
-| **R5** | ~~литерал-union без `@default`~~ | отменено — прозу в `.d.ts` не пишем |
-| **R6** | `@default undefined` ⇒ в типе есть `\| undefined` | линтер |
 
 Сверх R-каталога — общая **BC-политика** (новое поле → `undefined`; существующее → без
 breaking changes; см. «Новое vs существующее»): тоже держится на ревью.
 
-**Линтер (R1/R2/R6)** — eslint-плагин `devextreme-custom`, правило `jsdoc-default-matches-type`
+**Линтер (R1/R2/R3)** — eslint-плагин `devextreme-custom`, правило `jsdoc-default-matches-type`
 (для `js/**/*.d.ts`, статус `warn` — видно в редакторе и в `lint-dts`). Держать в голове не
 нужно. Две защиты от роста числа нарушений:
 

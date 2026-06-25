@@ -6,7 +6,7 @@
  *   - R1: `@default null` requires `null` in the type.
  *   - R2: a concrete `@default` (not null/undefined) forbids `| undefined` in the
  *     type (an option with a real default never holds `undefined`).
- *   - R6: `@default undefined` requires `| undefined` in the type (the Angular
+ *   - R3: `@default undefined` requires `| undefined` in the type (the Angular
  *     wrapper generator drops `?`, so the unset state must be explicit).
  *
  * Out of scope (need runtime knowledge — handled at code review): R4 (object-option

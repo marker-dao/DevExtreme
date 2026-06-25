@@ -23,7 +23,7 @@ ruleTester.run('jsdoc-default-matches-type', rule, {
             code: 'interface dxFooOptions { /** @default false */ foo?: boolean; }',
             filename: 'foo.d.ts',
         },
-        // R6: @default undefined with | undefined.
+        // R3: @default undefined with | undefined.
         {
             code: 'interface dxFooOptions { /** @default undefined */ foo?: string | undefined; }',
             filename: 'foo.d.ts',
@@ -37,7 +37,7 @@ ruleTester.run('jsdoc-default-matches-type', rule, {
             code: 'interface dxFooOptions { /** @docid */ foo?: string; }',
             filename: 'foo.d.ts',
         },
-        // R6 boundary: object-typed option with | undefined + @default undefined is consistent.
+        // R3 boundary: object-typed option with | undefined + @default undefined is consistent.
         {
             code: 'interface dxFooOptions { /** @default undefined */ bar?: PopupProperties | undefined; }',
             filename: 'foo.d.ts',
@@ -57,13 +57,13 @@ ruleTester.run('jsdoc-default-matches-type', rule, {
             filename: 'foo.d.ts',
             errors: [{ messageId: 'concreteDefaultNoUndefined' }],
         },
-        // R6: @default undefined but no | undefined (scalar).
+        // R3: @default undefined but no | undefined (scalar).
         {
             code: 'interface dxFooOptions { /** @default undefined */ foo?: string; }',
             filename: 'foo.d.ts',
             errors: [{ messageId: 'defaultUndefinedNeedsUndefined' }],
         },
-        // R6 (object-typed): @default undefined but no | undefined.
+        // R3 (object-typed): @default undefined but no | undefined.
         {
             code: 'interface dxFooOptions { /** @default undefined */ bar?: { x?: number; }; }',
             filename: 'foo.d.ts',

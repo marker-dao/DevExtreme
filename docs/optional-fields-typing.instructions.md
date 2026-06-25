@@ -92,8 +92,8 @@ location?: TextEditorButtonLocation;           // incorrect: @default whose valu
 ## Review checklist
 
 - **R1**: `@default null` present -> the type must include `null`.
-- **R6**: `@default undefined` present -> the type must include `| undefined`.
 - **R2**: a concrete `@default` (not `null`/`undefined`) -> the type must NOT include `| undefined`.
+- **R3**: `@default undefined` present -> the type must include `| undefined`.
 - **R4**: an object-valued option -> add a `@default` only when `getDefaultOptions` stores a value
   that DIFFERS from the referenced type's own defaults (a runtime override); an empty seed
   (`{}`) or an INLINE object whose sub-properties carry their own `@default` needs none. (Not
