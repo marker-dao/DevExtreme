@@ -1,5 +1,15 @@
 # Предложение: конвенция типизации optional-полей публичного API
 
+## Ссылки
+
+- **Конвенция — RU:** https://wiki.devexpress.devx/en/devextreme/product/api/optional-fields-convention
+- **Convention — EN:** https://wiki.devexpress.devx/en/devextreme/product/api/optional-fields-convention-en
+- **ESLint-правило (PR):** [#34137](https://github.com/DevExpress/DevExtreme/pull/34137)
+- **Copilot-инструкция (PR):** [#34134](https://github.com/DevExpress/DevExtreme/pull/34134)
+- **Примеры применения (PR):** [#34126](https://github.com/DevExpress/DevExtreme/pull/34126), [#34048](https://github.com/DevExpress/DevExtreme/pull/34048)
+
+---
+
 ## Одной строкой
 
 Расхождение публичных типов `.d.ts`, JSDoc `@default` и рантайм-дефолтов — без единого правила.
@@ -35,23 +45,22 @@
 
 ## Решение — конвенция + инструмент
 
-1. **Конвенция** ([OPTIONAL_FIELDS_CONVENTION.md](OPTIONAL_FIELDS_CONVENTION.md)) — короткое
-   механическое правило: как объявить optional-поле в типе и что писать в `@default`. Ответ
-   **однозначно выводится из поведения компонента**. Обязательно для **нового** кода;
+1. **Конвенция** ([RU](https://wiki.devexpress.devx/en/devextreme/product/api/optional-fields-convention)
+   / [EN](https://wiki.devexpress.devx/en/devextreme/product/api/optional-fields-convention-en)) —
+   короткое механическое правило: как объявить optional-поле в типе и что писать в `@default`.
+   Ответ **однозначно выводится из поведения компонента**. Обязательно для **нового** кода;
    существующее не ломаем (см. следующий раздел). Сами формулировки — по ссылке.
 
 2. **Инструмент — главное.** Конвенцию **не нужно держать в голове** — её соблюдение
    проверяется автоматически, на двух уровнях:
-   - **линтер** подсвечивает несоответствия типа и `@default` прямо в редакторе и на сборке;
-     отдельная защита в CI не даёт числу нарушений расти;
-   - **ревью с GitHub Copilot** (через файл инструкций `optional-fields-typing.instructions.md`)
-     ловит то, что линтер не может: выбор между `undefined` и `null` для нового поля.
+   - **линтер** ([PR #34137](https://github.com/DevExpress/DevExtreme/pull/34137)) подсвечивает
+     несоответствия типа и `@default` прямо в редакторе и на сборке (`lint-dts`);
+   - **ревью с GitHub Copilot** (инструкция `optional-fields-typing.instructions.md`,
+     [PR #34134](https://github.com/DevExpress/DevExtreme/pull/34134)) ловит то, что линтер
+     не может: выбор между `undefined` и `null` для нового поля.
 
    Это не «ещё одна конвенция, которую держат в голове», а инструмент, который **снижает
    нагрузку**: написал поле не так — сразу видишь подсказку.
-
-   > Внесение правила в `optional-fields-typing.instructions.md` (второй уровень, Copilot) —
-   > следующий шаг, уже после согласования.
 
 ---
 
@@ -66,7 +75,9 @@
 Существующие типы правим только безопасно — без изменений, ломающих чей-либо код. Правило
 работает в полную силу на **новом** коде.
 
-> Массовая замена `null → undefined` вне текущего предложения.
+> Это уже учтено на практике: в [PR #34126](https://github.com/DevExpress/DevExtreme/pull/34126)
+> откатили незаапрувленные breaking changes (из [#33784](https://github.com/DevExpress/DevExtreme/pull/33784)) —
+> **в общем случае менять `null` на `undefined` не нужно.** Массовая замена — вне предложения.
 
 ---
 
@@ -74,7 +85,11 @@
 
 Сейчас необходимо: **согласовать конвенцию как общую для всех команд.** Дальше:
 
-- правило и линтер уже готовы — отдельно «внедрять» нечего (есть PR);
-- пилот на `chat.d.ts` показывает эталон оформления;
+- правило и линтер уже готовы — [ESLint PR #34137](https://github.com/DevExpress/DevExtreme/pull/34137),
+  [Copilot-инструкция PR #34134](https://github.com/DevExpress/DevExtreme/pull/34134);
+- эталон оформления — примеры применения
+  [PR #34126](https://github.com/DevExpress/DevExtreme/pull/34126),
+  [PR #34048](https://github.com/DevExpress/DevExtreme/pull/34048);
 - каждая команда приводит свои поля в порядок в удобном темпе;
-- защита в CI гарантирует, что новых нарушений не появится.
+- новые нарушения сразу видны в линтере; смысловой слой (`undefined`-vs-`null`, объект-опции)
+  держит Copilot-ревью.
