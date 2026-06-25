@@ -102,7 +102,7 @@ editRowKey?: TKey;
 | «опциональная фича, выключена» | `fileUploaderOptions`, `speechToTextOptions` | `undefined` | `foo?: NestedProperties | undefined` | `undefined` |
 
 **Примеры A-obj-конфигов из кодовой базы** (все «всегда-вкл»: `foo?: NestedProperties` без `| undefined`, `@default` зеркалит объект-дефолт):
-- **Гриды** (под-опции, адресуются по пути `option('paging.pageSize')`): `editing`, `paging`,
+- **Grid** (под-опции, адресуются по пути `option('paging.pageSize')`): `editing`, `paging`,
   `scrolling`, `selection`, `columnChooser`, `filterRow`, `headerFilter`, `pager`, `searchPanel`,
   `stateStoring`, `loadPanel` — [common/grids.d.ts:2621](https://github.com/DevExpress/DevExtreme/blob/26_1/packages/devextreme/js/common/grids.d.ts#L2621).
 - **Viz:** `tooltip`, `legend`, `argumentAxis`, `valueAxis`, `commonSeriesSettings` —
@@ -252,8 +252,8 @@ selectedItemKey?: string | number | null;   // стало: тип расшири
 | Правило | Проверка | Где проверяется |
 |---|---|---|
 | **R1** | `@default null` ⇒ в типе есть `null` | линтер |
-| **R2** | конкретный `@default` (не null/undefined) ⇒ в типе нет `\| undefined` | линтер |
-| **R3** | `@default undefined` ⇒ в типе есть `\| undefined` | линтер |
+| **R2** | конкретный `@default` (не null/undefined) ⇒ в типе нет `| undefined` | линтер |
+| **R3** | `@default undefined` ⇒ в типе есть `| undefined` | линтер |
 | **R4** | объект-опция: `@default` нужен только при переопределении дефолтов типа | ревью (Copilot) |
 
 Сверх R-каталога — общая **BC-политика** (новое поле → `undefined`; существующее → без
@@ -277,6 +277,3 @@ breaking changes; см. «Новое vs существующее»): тоже д
 **Ревью (Copilot)** — смысловой слой: **R4** и BC-политика — то, что зависит от рантайма или
 намерения и чего линтер не видит. Закреплён в `optional-fields-typing.instructions.md`, чтобы
 Copilot применял его на ревью PR.
-
-**Граница линтера на практике:** при правке поля категорию и направление сверяй по
-`_getDefaultOptions` (lint туда не смотрит). Для существующего поля — без BC (выше).
