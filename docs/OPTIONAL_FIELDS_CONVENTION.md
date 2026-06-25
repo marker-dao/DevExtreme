@@ -117,26 +117,33 @@ editRowKey?: TKey;
 > `speechToTextEnabled: boolean` + `speechToTextOptions: NestedProperties`. Тогда
 > `speechToTextOptions` — обычная A-obj без `| undefined`.
 
-**`@default` = хранимый дефолт.** Зеркалим то, что лежит в `defaultOptions`:
+**`@default` у объект-опции нужен только при переопределении дефолтов типа.** Тип-ссылка
+(`PopupProperties`) уже документирует дефолты своих под-свойств. `@default` на самой опции
+имеет смысл лишь когда `_getDefaultOptions` задаёт значения, **отличные от дефолтов типа** —
+чтобы задокументировать это переопределение. Нет переопределения (seed `{}`) → `@default`
+не нужен. У **инлайн-объекта** под-свойства несут свои `@default` сами — контейнеру `@default`
+не нужен. Линтер это **не проверяет** (правило R4 убрано) — смысловой слой, Copilot-ревью.
 
-| Поле | дефолт | `@default` |
-|---|---|---|
-| `drop_down_button.dropDownOptions` | `{}` | `@default {}` |
-| `autocomplete.dropDownOptions` | `{ showTitle: false }` | `@default { showTitle: false }` |
-| `chat.sendButtonOptions` | `{ icon: 'arrowright', action: 'send', onClick: undefined }` | `@default { icon: 'arrowright', action: 'send' }` |
+| Поле | seed в `_getDefaultOptions` | отличается от дефолтов типа? | `@default` |
+|---|---|---|---|
+| `drop_down_button.dropDownOptions` | `{}` | нет | — не нужен |
+| `autocomplete.dropDownOptions` | `{ showTitle: false }` | да (переопределяет `showTitle`) | `@default { showTitle: false }` |
+| `chat.sendButtonOptions` | `{ icon: 'arrowright', action: 'send' }` | да | `@default { icon: 'arrowright', action: 'send' }` |
 
-**Как надо / как не надо:**
 ```ts
-// надо — у объект-опции есть @default (зеркалит дефолтный объект):
-/** @default {} */
+// переопределение дефолта типа → @default документирует его:
+/** @default { showTitle: false } */
 dropDownOptions?: PopupProperties;
 
-// не надо — объект-опция без @default:
-popup?: PopupProperties;
-```
-Надо: [dropDownOptions — ui/drop_down_button.d.ts:167](https://github.com/DevExpress/DevExtreme/blob/26_1/packages/devextreme/js/ui/drop_down_button.d.ts#L167).
+// нет переопределения (seed {}) → @default не нужен:
+dropDownOptions?: PopupProperties;
 
-Как не надо сейчас: [popup — common/grids.d.ts:1273](https://github.com/DevExpress/DevExtreme/blob/26_1/packages/devextreme/js/common/grids.d.ts#L1273)
+// инлайн-объект → @default на под-свойствах, не на контейнере:
+editing?: {
+  /** @default false */ allowDeleting?: boolean;
+  /** @default false */ allowUpdating?: boolean;
+};
+```
 
 ## B — свойство объекта (данные и config-item)
 
@@ -238,7 +245,7 @@ selectedItemKey?: string | number | null;   // стало: тип расшири
 проверяет «тип ↔ `@default`» (для `js/**/*.d.ts`, статус `warn` — видно в редакторе и в
 `lint-dts`):
 
-- `jsdoc-default-matches-type` — `@default` ↔ тип (R1/R2/R4/R6).
+- `jsdoc-default-matches-type` — `@default` ↔ тип (R1/R2/R6).
 
 Чтобы число нарушений не росло, есть две защиты:
 
@@ -259,7 +266,8 @@ selectedItemKey?: string | number | null;   // стало: тип расшири
 решить, что правильно для нового поля — `undefined` или `null`** (это смысловой выбор).
 Поэтому правило «новое поле → `undefined`; `null` только с обоснованием» закреплено в
 `optional-fields-typing.instructions.md` — для ревью GitHub Copilot. То, что линтер структурно
-не ловит, ловит ревью.
+не ловит, ловит ревью — сюда же относится **нужен ли объект-опции `@default`** (зависит от
+того, виден ли дефолт в объявлении и от seed; линтер не видит — бывшее R4 убрано).
 
 **Граница линтера на практике:** при правке поля категорию и направление сверяй по
 `_getDefaultOptions` (lint туда не смотрит). Для существующего поля — без BC (выше).

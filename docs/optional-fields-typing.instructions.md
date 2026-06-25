@@ -39,8 +39,12 @@ only when the runtime performs a meaningful `=== null` check.
   Callbacks/events are the `undefined` case: `((e) => void) | undefined`, `@default
   undefined`, never `| null`.
 - **A-obj — object-valued option** (the value is a config the runtime merges, e.g.
-  `editing`, `paging`, `tooltip`, `dropDownOptions`): type is `T` without `| undefined`;
-  `@default` mirrors the stored default object. Avoid the "optional feature, off by default"
+  `editing`, `paging`, `tooltip`, `dropDownOptions`): type is `T` without `| undefined`. A
+  `@default` is needed only when `getDefaultOptions` stores a value that DIFFERS from the
+  referenced type's own defaults — i.e. a runtime override worth documenting. The referenced
+  type (`PopupProperties`) already documents its sub-properties' defaults, so an empty seed
+  (`{}`, no override) needs no `@default`. An INLINE object whose sub-properties carry their
+  own `@default` needs no container `@default`. (Not lint-enforced — a review judgment.) Avoid the "optional feature, off by default"
   pattern (`fooOptions?: ... | undefined`) in new design — it overloads one option with both
   the config and the on/off flag; prefer a separate boolean flag plus a config option
   (`fooEnabled: boolean` + `fooOptions: NestedProperties`).
@@ -66,10 +70,14 @@ editRowKey?: TKey | null;                      // correct
 /** @default null */
 editRowKey?: TKey;                             // incorrect: @default null, but the type allows neither null nor undefined
 
-// A-obj — an object-valued option must declare @default mirroring its stored object
-/** @default {} */
-dropDownOptions?: PopupProperties;             // correct
-popup?: PopupProperties;                       // incorrect: object-valued option without @default
+// A-obj (reference) — @default documents a runtime override of the type's defaults
+/** @default { showTitle: false } */
+dropDownOptions?: PopupProperties;             // correct: getDefaultOptions overrides showTitle
+dropDownOptions?: PopupProperties;             // correct: seed {} (no override) -> no @default
+// A-obj (inline) — sub-properties carry their own @default; the container needs none
+editing?: {
+  /** @default false */ allowDeleting?: boolean;
+};                                             // correct
 
 // B — a data-object / config-item field: no @default (value isn't stored), no prose in the .d.ts
 /**
@@ -86,7 +94,10 @@ location?: TextEditorButtonLocation;           // incorrect: @default whose valu
 - `@default null` present -> the type must include `null`.
 - `@default undefined` present -> the type must include `| undefined`.
 - A concrete `@default` (not `null`/`undefined`) -> the type must NOT include `| undefined`.
-- An object-valued option -> it must have a `@default` that mirrors its stored default object.
+- An object-valued option -> add a `@default` only when `getDefaultOptions` stores a value
+  that DIFFERS from the referenced type's own defaults (a runtime override); an empty seed
+  (`{}`) or an INLINE object whose sub-properties carry their own `@default` needs none. (Not
+  lint-enforced — a review check.)
 - A data-object / config-item field (not a stored option) -> no `@default`; remove any
   `@default` whose value isn't stored in `defaultOptions` (a point-of-use default in a
   `switch`/`case`). Behavior is documented by tech writers elsewhere, not in the `.d.ts`.

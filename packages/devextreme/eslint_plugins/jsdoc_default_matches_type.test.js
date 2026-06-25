@@ -28,41 +28,18 @@ ruleTester.run('jsdoc-default-matches-type', rule, {
             code: 'interface dxFooOptions { /** @default undefined */ foo?: string | undefined; }',
             filename: 'foo.d.ts',
         },
-        // R4: object option carries @default.
+        // No @default → nothing to check (object-option @default is not linted — handled at review).
         {
-            code: 'interface dxFooOptions { /** @default {} */ bar?: PopupProperties; }',
+            code: 'interface dxFooOptions { /** @docid */ bar?: PopupProperties; }',
             filename: 'foo.d.ts',
         },
-        // Category B: object-typed property in a data type (not *Options) → R4 does not apply.
-        {
-            code: 'type Message = { /** @docid */ bar?: PopupProperties; };',
-            filename: 'foo.d.ts',
-        },
-        // No default, scalar type → nothing to check.
         {
             code: 'interface dxFooOptions { /** @docid */ foo?: string; }',
             filename: 'foo.d.ts',
         },
-        // R4 disabled via option.
-        {
-            code: 'interface dxFooOptions { /** @docid */ bar?: PopupProperties; }',
-            filename: 'foo.d.ts',
-            options: [{ requireObjectOptionDefault: false }],
-        },
-        // Object option seeded `undefined` (optional-feature config, e.g. fileUploaderOptions):
-        // | undefined + @default undefined is consistent → no report.
+        // R6 boundary: object-typed option with | undefined + @default undefined is consistent.
         {
             code: 'interface dxFooOptions { /** @default undefined */ bar?: PopupProperties | undefined; }',
-            filename: 'foo.d.ts',
-        },
-        // Union of object types with a @default → R4 satisfied.
-        {
-            code: 'interface dxFooOptions { /** @default {} */ bar?: PopupProperties | PopoverProperties; }',
-            filename: 'foo.d.ts',
-        },
-        // Utility-wrapped object option with a @default → R4 satisfied.
-        {
-            code: 'interface dxFooOptions { /** @default {} */ bar?: Omit<PopupProperties, \'a\'>; }',
             filename: 'foo.d.ts',
         },
     ],
@@ -80,43 +57,17 @@ ruleTester.run('jsdoc-default-matches-type', rule, {
             filename: 'foo.d.ts',
             errors: [{ messageId: 'concreteDefaultNoUndefined' }],
         },
-        // R6: @default undefined but no | undefined.
+        // R6: @default undefined but no | undefined (scalar).
         {
             code: 'interface dxFooOptions { /** @default undefined */ foo?: string; }',
             filename: 'foo.d.ts',
             errors: [{ messageId: 'defaultUndefinedNeedsUndefined' }],
         },
-        // R4: object option in an *Options interface without @default.
-        {
-            code: 'interface dxFooOptions { /** @docid */ bar?: PopupProperties; }',
-            filename: 'foo.d.ts',
-            errors: [{ messageId: 'objectOptionNeedsDefault' }],
-        },
-        // R4 via inheritance: interface extends WidgetOptions, inline object type without @default.
-        {
-            code: 'interface Foo extends WidgetOptions<Foo> { /** @docid */ bar?: { x?: number; }; }',
-            filename: 'foo.d.ts',
-            errors: [{ messageId: 'objectOptionNeedsDefault' }],
-        },
-        // R6 now applies to object options too: @default undefined but no | undefined
-        // (e.g. an always-present object option mis-documented — fix @default to `{}`).
+        // R6 on an object-typed option: @default undefined but no | undefined.
         {
             code: 'interface dxFooOptions { /** @default undefined */ bar?: { x?: number; }; }',
             filename: 'foo.d.ts',
             errors: [{ messageId: 'defaultUndefinedNeedsUndefined' }],
-        },
-        // R4 looks through unions: object option `Props | undefined` without @default.
-        {
-            code: 'interface dxFooOptions { /** @docid */ bar?: PopupProperties | undefined; }',
-            filename: 'foo.d.ts',
-            errors: [{ messageId: 'objectOptionNeedsDefault' }],
-        },
-        // R4 sees through utility types: Omit<...Properties> without @default
-        // (e.g. chat fileUploaderOptions / speechToTextOptions).
-        {
-            code: 'interface dxFooOptions { /** @docid */ bar?: Omit<PopupProperties, \'a\'>; }',
-            filename: 'foo.d.ts',
-            errors: [{ messageId: 'objectOptionNeedsDefault' }],
         },
     ],
 });
