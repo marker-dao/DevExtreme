@@ -1,4 +1,4 @@
-# Proposal: optional-field typing convention for the public API
+# Typing convention for the public API
 
 ## Links
 
