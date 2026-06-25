@@ -28,7 +28,7 @@ ruleTester.run('jsdoc-default-matches-type', rule, {
             code: 'interface dxFooOptions { /** @default undefined */ foo?: string | undefined; }',
             filename: 'foo.d.ts',
         },
-        // No @default → nothing to check (object-option @default is not linted — handled at review).
+        // No @default → nothing to check (object-option @default is R4 — review, not lint).
         {
             code: 'interface dxFooOptions { /** @docid */ bar?: PopupProperties; }',
             filename: 'foo.d.ts',
@@ -63,7 +63,7 @@ ruleTester.run('jsdoc-default-matches-type', rule, {
             filename: 'foo.d.ts',
             errors: [{ messageId: 'defaultUndefinedNeedsUndefined' }],
         },
-        // R6 on an object-typed option: @default undefined but no | undefined.
+        // R6 (object-typed): @default undefined but no | undefined.
         {
             code: 'interface dxFooOptions { /** @default undefined */ bar?: { x?: number; }; }',
             filename: 'foo.d.ts',

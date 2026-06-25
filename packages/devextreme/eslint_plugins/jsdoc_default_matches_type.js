@@ -1,14 +1,16 @@
 /**
  * Enforces the optional-field typing convention for public `.d.ts` files: a
  * property's JSDoc `@default` tag must agree with the shape of its TypeScript
- * type. Three checks (R3/R4/R5 are intentionally not enforced by lint — they
- * need runtime/semantic judgment and are handled at code review):
+ * type. Three checks (codes match the convention's R-catalog):
  *
- *   R1 — `@default null` requires `null` in the type.
- *   R2 — a concrete `@default` (not null/undefined) forbids `| undefined` in the
- *        type (an option with a real default never holds `undefined`).
- *   R6 — `@default undefined` requires `| undefined` in the type (the Angular
- *        wrapper generator drops `?`, so the unset state must be explicit).
+ *   - R1: `@default null` requires `null` in the type.
+ *   - R2: a concrete `@default` (not null/undefined) forbids `| undefined` in the
+ *     type (an option with a real default never holds `undefined`).
+ *   - R6: `@default undefined` requires `| undefined` in the type (the Angular
+ *     wrapper generator drops `?`, so the unset state must be explicit).
+ *
+ * Out of scope (need runtime knowledge — handled at code review): R4 (object-option
+ * `@default`) and the `undefined`-vs-`null` choice for a new field.
  *
  * Purely syntactic: it inspects the TSESTree type node and the leading JSDoc
  * comment, so it needs no type information and runs per file.

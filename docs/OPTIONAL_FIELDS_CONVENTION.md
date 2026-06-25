@@ -78,7 +78,7 @@ filterValues?: Array<any> | undefined;
 /** @default undefined */
 filterValues?: Array<any>;
 ```
-Как не надо сейчас в коде: [filterValues — common/grids.d.ts:607](https://github.com/DevExpress/DevExtreme/blob/26_1/packages/devextreme/js/common/grids.d.ts#L607)
+**R6** · как не надо сейчас в коде: [filterValues — common/grids.d.ts:607](https://github.com/DevExpress/DevExtreme/blob/26_1/packages/devextreme/js/common/grids.d.ts#L607)
 
 ```ts
 // надо — @default null, и в типе есть null:
@@ -89,7 +89,7 @@ editRowKey?: TKey | null;
 /** @default null */
 editRowKey?: TKey;
 ```
-Как не надо сейчас в коде: [editRowKey — common/grids.d.ts:1255](https://github.com/DevExpress/DevExtreme/blob/26_1/packages/devextreme/js/common/grids.d.ts#L1255)
+**R1** · как не надо сейчас в коде: [editRowKey — common/grids.d.ts:1255](https://github.com/DevExpress/DevExtreme/blob/26_1/packages/devextreme/js/common/grids.d.ts#L1255)
 
 ## A-obj — опция-объект
 
@@ -122,7 +122,7 @@ editRowKey?: TKey;
 имеет смысл лишь когда `_getDefaultOptions` задаёт значения, **отличные от дефолтов типа** —
 чтобы задокументировать это переопределение. Нет переопределения (seed `{}`) → `@default`
 не нужен. У **инлайн-объекта** под-свойства несут свои `@default` сами — контейнеру `@default`
-не нужен. Линтер это **не проверяет** — проверка через Copilot-ревью.
+не нужен. Это **R4** — линтер объект-опции **не проверяет**, держит ревью (Copilot).
 
 | Поле | seed в `_getDefaultOptions` | отличается от дефолтов типа? | `@default` |
 |---|---|---|---|
@@ -247,30 +247,38 @@ selectedItemKey?: string | number | null;   // стало: тип расшири
 
 ## Как это контролируется — два слоя
 
-**1. Линтер.** Правило **не нужно держать в голове** — eslint-плагин `devextreme-custom`
-проверяет «тип ↔ `@default`» (для `js/**/*.d.ts`, статус `warn` — видно в редакторе и в
-`lint-dts`):
+**Каталог правил `@default` ↔ тип (определение; ниже по тексту на коды есть ссылки):**
 
-- `jsdoc-default-matches-type` — `@default` ↔ тип (R1/R2/R6).
+| Правило | Проверка | Кто держит |
+|---|---|---|
+| **R1** | `@default null` ⇒ в типе есть `null` | линтер |
+| **R2** | конкретный `@default` (не null/undefined) ⇒ в типе нет `\| undefined` | линтер |
+| **R3** | конкретный `@default` + `null` (tri-state, напр. `check_box.value`) | не проверяется — легитимное исключение |
+| **R4** | объект-опция: `@default` нужен только при переопределении дефолтов типа | ревью (Copilot) |
+| **R5** | ~~литерал-union без `@default`~~ | отменено — прозу в `.d.ts` не пишем |
+| **R6** | `@default undefined` ⇒ в типе есть `\| undefined` | линтер |
 
-Чтобы число нарушений не росло, есть две защиты:
+Сверх R-каталога — общая **BC-политика** (новое поле → `undefined`; существующее → без
+breaking changes; см. «Новое vs существующее»): тоже держится на ревью.
 
-- `pnpm run lint-dts-convention` — (запускается в CI). Считает текущее число
-  предупреждений наших правил и сравнивает с зафиксированной планкой (baseline). Если число
-  **выросло** — шаг падает: в PR добавили новое нарушение, его надо убрать. Когда нарушения
-  в PR **починены**, планку опускают тем же PR: `pnpm run lint-dts-convention:update`
-  (обратно она уже не поднимется).
-- **glob-override** — когда область (например, `chat.d.ts`) вычищена до нуля, её путь
-  добавляют в отдельный блок в `eslint.config.mjs`, где правила переключены с `warn` на
-  `error`. С этого момента новое нарушение в этой области — сразу ошибка сборки, а не
-  предупреждение. Областей под `error` становится больше по мере чистки; в конце весь код
-  под `error`, и `pnpm run lint-dts-convention` можно убрать.
+**Линтер (R1/R2/R6)** — eslint-плагин `devextreme-custom`, правило `jsdoc-default-matches-type`
+(для `js/**/*.d.ts`, статус `warn` — видно в редакторе и в `lint-dts`). Держать в голове не
+нужно. Две защиты от роста числа нарушений:
 
-Реализация правил и ратчета — в `packages/devextreme/eslint_plugins/` и `build/linters/`.
+- **Ратчет** — `pnpm run lint-dts-convention` (в CI): считает текущее число предупреждений и
+  сравнивает с зафиксированной планкой (baseline), **падает, если выросло** (в PR добавили
+  нарушение). Когда нарушения в PR починены, планку опускают тем же PR:
+  `pnpm run lint-dts-convention:update` (обратно не поднимется).
+- **glob-override** — вычищенную до нуля область (например, `chat.d.ts`) добавляют в блок в
+  `eslint.config.mjs`, где правило переключено с `warn` на `error`: новое нарушение там —
+  сразу ошибка сборки. По мере чистки таких областей больше; в конце всё под `error`, и
+  ратчет можно убрать.
 
-**2. Copilot-ревью.** Линтер видит «тип ↔ `@default`», но **не рантайм** и **не может
-решить, что правильно для нового поля — `undefined` или `null`** (это смысловой выбор).
-Поэтому правило «новое поле → `undefined`; `null` только с обоснованием» закреплено в
-`optional-fields-typing.instructions.md` — для ревью GitHub Copilot. То, что линтер структурно
-не ловит, ловит ревью — сюда же относится **нужен ли объект-опции `@default`** (зависит от
-того, виден ли дефолт в объявлении).
+Реализация — в `packages/devextreme/eslint_plugins/` и `build/linters/`.
+
+**Ревью (Copilot)** — смысловой слой: **R4** и BC-политика — то, что зависит от рантайма или
+намерения и чего линтер не видит. Закреплён в `optional-fields-typing.instructions.md`, чтобы
+Copilot применял его на ревью PR.
+
+**Граница линтера на практике:** при правке поля категорию и направление сверяй по
+`_getDefaultOptions` (lint туда не смотрит). Для существующего поля — без BC (выше).
