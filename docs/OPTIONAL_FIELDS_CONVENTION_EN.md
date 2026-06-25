@@ -272,7 +272,8 @@ After the type is extended, the `@ts-expect-error` above `selectedItemKey: null`
 |---|---|
 | `T` (option with a concrete default) | Default value |
 | <code>T &#124; undefined</code> (option with `undefined` default) | `undefined` |
-| <code>T &#124; null</code> | `null` | | `NestedProperties` (A-obj) | Default object |
+| <code>T &#124; null</code> | `null` |
+| `NestedProperties` (A-obj) | Default object |
 | `T` (category B) | **No tag**. Behavior goes into the description |
 
 ---
@@ -295,21 +296,10 @@ new field → `undefined`; existing field → no breaking changes. See “New vs
 This is also enforced during review.
 
 **Linter (R1 / R2 / R3).** The eslint plugin `devextreme-custom`, rule
-`jsdoc-default-matches-type`, runs for `js/**/*.d.ts` with `warn` severity.
-It is visible in the editor and in `lint-dts`. You do not need to keep the details in your head.
-Two mechanisms prevent the number of violations from growing:
+`jsdoc-default-matches-type`, runs for `js/**/*.d.ts` with `warn` severity. It is visible in the
+editor and in `lint-dts`. You do not need to keep the details in your head.
 
-* **Ratchet:** `pnpm run lint-dts-convention` runs in CI. It counts the current number of warnings
-  and compares it with the fixed baseline. It **fails if the count increases**, meaning a PR has added
-  a new violation. Once violations are fixed in a PR, lower the baseline in the same PR with:
-  `pnpm run lint-dts-convention:update`. The baseline cannot be raised back.
-* **Glob override:** once an area has been cleaned up to zero violations, for example `chat.d.ts`,
-  it is added to a block in `eslint.config.mjs` where the rule is switched from `warn` to `error`.
-  A new violation in that area immediately becomes a build error. As more areas are cleaned up,
-  more of them move under `error`. Eventually everything should be under `error`, and the ratchet
-  can be removed.
-
-Implementation is located in `packages/devextreme/eslint_plugins/` and `build/linters/`.
+Implementation is located in `packages/devextreme/eslint_plugins/`.
 
 **Review (Copilot).** This is the semantic layer: **R4** and the BC policy. These depend on runtime
 behavior or design intent, which the linter cannot reliably detect. The rule is documented in
