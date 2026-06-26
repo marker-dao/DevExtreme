@@ -3,9 +3,8 @@
  * напрямую управляет тем, примет ли Angular-обёртка `undefined` во входном
  * биндинге при включённом strictTemplates у потребителя.
  *
- * Запуск (ngc нужен из apps/demos, конфиг — в docs/):
- *   cd apps/demos
- *   pnpm exec ngc --noEmit --project ../../docs/tsconfig.research.json
+ * Запуск (ngc нужен из apps/demos, конфиг — в root/):
+ *   pnpm --dir apps/demos exec ngc --noEmit --project ../../tsconfig.research.json
  *
  * Ожидаемый вывод (ровно одна ошибка — на [type]):
  *   undefined-research.component.ts:38:28 - error TS2322:
@@ -22,11 +21,6 @@
  *
  *   Других различий между этими двумя биндингами нет. Значит, наличие
  *   `| undefined` в .d.ts ядра — единственная причина разного поведения.
- *
- * Почему отдельный файл, а не app.component.ts: AppComponent использует
- * динамический templateUrl (`./${modulePrefix}/app.component.html`), который
- * Angular AOT не резолвит статически и пропускает template type-check.
- * Здесь — inline-шаблон, он проверяется.
  */
 import { Component } from '@angular/core';
 import { DxChatModule } from 'devextreme-angular';

@@ -8,7 +8,7 @@
     "moduleResolution": "Node",
     "lib": ["es2022", "DOM", "DOM.Iterable"],
     "noEmit": true,
-    "baseUrl": "../apps/demos",
+    "baseUrl": "apps/demos",
     "paths": {
       "*": ["node_modules/*"]
     }
