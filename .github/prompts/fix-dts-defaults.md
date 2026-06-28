@@ -99,6 +99,61 @@ For each flagged property, find what `_getDefaultOptions()` actually stores. Fiv
 The `@default` tag in the `.d.ts` is a claim about this value. If the tag disagrees with
 what is stored, **both** the tag and the type must be corrected — never trust the tag.
 
+### Step 2 (viz) — Visualization widgets store defaults elsewhere, not in `_getDefaultOptions()`
+
+Everything under `js/viz/**` (charts, gauges, maps, sankey, funnel, tree map, vector map,
+range selector, sparklines) usually does **NOT** keep option defaults in `_getDefaultOptions()`.
+Grepping only `_getDefaultOptions()` will wrongly conclude "stored `undefined`" for almost
+everything. Check these three sources instead, then apply the normal Step 3 tables to the value
+you actually find:
+
+| Where the viz default lives | What it means for `@default` |
+|---|---|
+| **Theme files** — `js/__internal/viz/core/themes/generic/light/` (`chart.ts`, `index.ts`, `contants.ts`, …). Theme sections merge (`themes.ts` merges `chart:common` into chart/pie/polar). | A themed value **round-trips** through `.option()` → it IS the stored default. `@default <value>` is valid; for a `concrete+undefined` case, **remove `\| undefined`**. |
+| **`_eventsMap`** — callbacks are registered here (`m_base_chart.ts`, `m_base_widget.ts`), **not** in `_getDefaultOptions()`. | An `_eventsMap`-only callback is **not stored** → `.option()` returns `undefined`. Its `@default null` is wrong → change to `@default undefined`, add `\| undefined` (keep `@type function`). |
+| **Render / point-of-use fallback** — e.g. `dashStyle = style.border?.dashStyle \|\| 'solid'` in a series file. | The fallback is **not stored** (`.option()` never returns it) — a point-of-use default → set `@default` to `undefined`, keep `\| undefined`; emit a tech-writer note (Step 5). |
+
+**Key trap — two `concrete+undefined` cases that look identical but resolve oppositely.**
+A series style sub-property `label.border.color` (`@default '#d3d3d3'`) is **theme-stored**
+(`themes/generic/light/chart.ts`) → round-trips → **remove `\| undefined`**, keep `@default`.
+But `hoverStyle.border.dashStyle` (`@default 'solid'`) is only a **render fallback** (`\|\| 'solid'`,
+e.g. `series/bar_series.ts`) → not stored → **change `@default` to `undefined`**, keep `\| undefined`.
+Verify each in the theme files; never decide by appearance.
+
+To confirm any viz default: grep the **theme directory** + **`_eventsMap`** + **render code**, not
+just `_getDefaultOptions()`.
+
+### Step 2 (grids) — DataGrid / TreeList defaults are modular, and callbacks are registered not defaulted
+
+Grid runtime (`js/__internal/grids/`) differs from a normal widget in two ways:
+
+- **`_getDefaultOptions()` is assembled from many modules.** Each feature module under
+  `grid_core/<module>/` (`editing`, `focus`, `views`, `selection`, `validating`, `state_storing`,
+  `context_menu`, …) plus `data_grid/` and `tree_list/` contributes its own `_getDefaultOptions`.
+  Grepping one file finds nothing — search the **whole `js/__internal/grids/` tree** for `<option>: null`.
+- **Callbacks are registered with `this.createAction('onX')`, which does NOT set a default.**
+  Mechanism (verified): `createAction` (`grid_core/m_modules.ts`) stores the action wrapper in the
+  module's **internal `_actions[name]` field**, never in the option store; the base
+  `_createActionByOption` (`core/widget/component.ts`) returns a closure that only **reads**
+  `this.option('onX')` lazily at execute time — it never writes the option. So a grid callback is
+  stored `null` **only** if some module's `_getDefaultOptions` literally contains `onX: null`;
+  otherwise it is `createAction`-only and `.option('onX')` returns `undefined` (the action fires
+  the event regardless, but that internal wiring is not the option value `@default` describes).
+  This is **mixed** — most grid callbacks documented `@default null` actually store `undefined`, but
+  a few do have `onX: null` (e.g. `onContextMenuPreparing`, `onAdaptiveDetailRowPreparing`,
+  `onDataErrorOccurred`, TreeList `onNodesInitialized`). **Check each callback both ways:** grep
+  `onX: null` across `js/__internal/grids/` vs. only `createAction('onX')`.
+  *Do not "fix" this by adding `onX: undefined` to `_getDefaultOptions`* — it is a runtime no-op
+  (`.option()` already returns `undefined`), out of scope here, and against the registration pattern.
+  The `.d.ts`-only fix (`@default undefined` + `\| undefined`) is sufficient.
+
+Two more grid notes:
+- **`GridBaseColumn` (and any `columns[]` field) is Category B** — columns are a collection of
+  config items, so a column sub-property (`filterOperations`, `filterValues`, …) is never a stored
+  widget default → **remove `@default`** (Step 3 Category B row).
+- Watch for a `null as undefined` / `null as any as undefined` **cast** at the assignment — the
+  stored runtime value is still `null` (treat as stored `null`, add `\| null`).
+
 ---
 
 ## Step 3 — Apply the fix
