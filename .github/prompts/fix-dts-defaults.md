@@ -191,6 +191,17 @@ The **"finding"** column is what Step 2 told you is actually stored.
 | Point-of-use default | Change `@default` to `undefined`, keep `\| undefined`. **Emit a tech-writer note (Step 5).** |
 | Category B | Remove `@default` entirely. Leave `\| undefined` if it was already there. |
 
+### Also: `any`-typed fields
+
+`any` is **not** nullable — it disables type checking (`any ≠ unknown`); it does not "contain
+`null`". An `any` field still gets flagged for `@default null`/`undefined`. Apply the same table
+rows above, treating `any` as the type:
+- `@default null`, stored `null` → **add `\| null`** → `any | null`. It documents the stored value
+  and collapses to `any` for the compiler (`no-redundant-type-constituents` is not enabled here, so
+  no new warning).
+- Do **not** confuse this with an alias that already includes `null` (`DateLike = Date | number |
+  string | null`): the type is already correct → no edit (the linter just doesn't resolve aliases).
+
 ### Also: handle `@type` (wrapper-generator directive)
 
 A property's JSDoc may carry a `@type`. It is a **hand-authored declaration consumed by the
